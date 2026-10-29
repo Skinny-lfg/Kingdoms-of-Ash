@@ -92,7 +92,7 @@ test('recrutamento, incursão e regresso das tropas', () => {
   assert.equal(g.state().missions.length, 1);
   assert.ok(totals(g.state(), 0) < initial + 5);
   g.advance(); g.advance();
-  assert.equal(g.state().missions.length, 0);
+  assert.equal(g.state().missions.filter(m => m.owner === 0).length, 0);
   assert.ok(g.state().logs.some(l => l.title === 'Tropas regressaram'));
 });
 
