@@ -306,12 +306,12 @@
     const f = game.factions[id]; const villages = ownTiles(id);
     if (!villages.length) return;
     const pending = game.missions.some(function (m) { return m.owner === id && !m.returnTrip; });
-    if (!pending && (f.style === 'economic' || rng() > 0.18)) {
-      const plot = nearestFree(id);
-      if (plot && canAfford(id, settleCost(id)) && (game.day > 2 || f.style === 'economic')) {
-        if (launch(id, plot.id, 'settle', 0, true)) return;
-      }
+    const plot = !pending ? nearestFree(id) : null;
+    if (plot && canAfford(id, settleCost(id)) && (game.day > 2 || f.style === 'economic')) {
+      if (launch(id, plot.id, 'settle', 0, true)) return;
     }
+    // Impérios investem primeiro na expansão; não gastam cada dia todo o tesouro em tropas.
+    if (plot && (f.style === 'aggressive' ? game.day % 3 !== id % 3 : game.day % 6 !== id % 6)) return;
     if (game.day > 8 && rng() < 0.09) {
       const possible = game.factions.filter(function (other) {
         return other.id !== id && ownTiles(other.id).some(function (t) { return nearestDistance(id, t.id) <= 3; }) && relation(id, other.id).stance === 'neutral';
@@ -333,7 +333,7 @@
         enemies.sort(function (a, b) { return nearestDistance(id, a.id) - nearestDistance(id, b.id); });
         const t = enemies[0]; const defense = armyPower(defendTroops(t.owner), true) + t.levels.wall * 16;
         if (armyPower(f.troops, false) * .7 > defense * .9) {
-          const mode = f.troops.siege >= 3 && ownTiles(t.owner).length > 1 ? 'conquer' : 'raid';
+          const mode = f.troops.siege >= 3 ? 'conquer' : 'raid';
           if (launch(id, t.id, mode, 80, true)) return;
         }
       }
@@ -402,10 +402,10 @@
     if (game.ended || game.event) return;
     game.day++;
     produceAndBuild();
-    game.factions.slice(1).forEach(function (f) { aiAct(f.id); });
     const finished = [];
     game.missions.forEach(function (m) { m.eta--; if (m.eta <= 0 && resolveMission(m)) finished.push(m.id); });
     game.missions = game.missions.filter(function (m) { return !finished.includes(m.id); });
+    game.factions.slice(1).forEach(function (f) { aiAct(f.id); });
     createDiplomaticEvent(); checkEnd(); refresh();
   }
   function refresh() { save(); render(); }
@@ -590,7 +590,7 @@
   }
   function handleAction(btn) {
     const action = btn.dataset.action;
-    const tileId = Number(btn.dataset.tile || game.selected);
+    const tileId = btn.dataset.tile !== undefined ? Number(btn.dataset.tile) : game.selected;
     const factionId = Number(btn.dataset.faction);
     if (action === 'restart') { createGame(); refresh(); return; }
     if (game.ended) return;
