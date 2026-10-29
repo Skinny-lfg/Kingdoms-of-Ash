@@ -310,19 +310,21 @@
     if (plot && canAfford(id, settleCost(id)) && (game.day > 2 || f.style === 'economic')) {
       if (launch(id, plot.id, 'settle', 0, true)) return;
     }
-    // Impérios investem primeiro na expansão; não gastam cada dia todo o tesouro em tropas.
-    if (plot && (f.style === 'aggressive' ? game.day % 3 !== id % 3 : game.day % 6 !== id % 6)) return;
-    if (game.day > 8 && rng() < 0.09) {
+    if (game.day > 8 && rng() < 0.12) {
       const possible = game.factions.filter(function (other) {
-        return other.id !== id && ownTiles(other.id).some(function (t) { return nearestDistance(id, t.id) <= 3; }) && relation(id, other.id).stance === 'neutral';
+        return other.id !== id && ownTiles(other.id).some(function (t) { return nearestDistance(id, t.id) <= 3; }) && ['neutral','pact'].includes(relation(id, other.id).stance);
       });
       if (possible.length) {
         const target = possible[rand(possible.length)];
-        if ((f.style === 'aggressive' || f.style === 'opportunist') && armyPower(f.troops) > armyPower(target.troops) * 1.15) {
+        const r = relation(id, target.id);
+        if (r.stance === 'pact' && (f.style === 'diplomatic' || f.style === 'defensive') && r.opinion >= 20) {
+          setStance(id, target.id, 'alliance', r.opinion + 12);
+          message('Nova aliança', f.name + ' e ' + target.name + ' uniram as suas forças.');
+        } else if (r.stance === 'neutral' && (f.style === 'aggressive' || f.style === 'opportunist') && armyPower(f.troops) > armyPower(target.troops) * 1.15) {
           setStance(id, target.id, 'war', -80);
           message('Fronteira em chamas', f.name + ' declarou guerra a ' + target.name + '.', 'war');
-        } else if (f.style === 'diplomatic' && relation(id, target.id).opinion >= 0) {
-          setStance(id, target.id, 'pact', 22);
+        } else if (r.stance === 'neutral' && (f.style === 'diplomatic' || f.style === 'defensive') && r.opinion >= -4) {
+          setStance(id, target.id, 'pact', 26);
           message('Novo acordo', f.name + ' assinou um pacto com ' + target.name + '.');
         }
       }
@@ -338,6 +340,8 @@
         }
       }
     }
+    // A corrida territorial consome recursos, mas não bloqueia decisões de guerra e diplomacia.
+    if (plot && (f.style === 'aggressive' ? game.day % 3 !== id % 3 : game.day % 6 !== id % 6)) return;
     const capital = villages[0];
     if (!capital.construction && rng() < 0.48) {
       let key;
