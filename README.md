@@ -1,0 +1,77 @@
+# Kingdoms of Ash
+
+**Kingdoms of Ash** é um protótipo jogável de estratégia **single-player** inspirado na sensação de um servidor de Travian: desenvolver economia, recrutar exércitos, disputar o ranking, negociar e observar impérios rivais a agir por iniciativa própria.
+
+> Versão **v0.1 — The Ashen Continent**. Interface em português de Portugal. Sem backend, conta, multiplayer, anúncios, serviços pagos ou dependências JavaScript externas. Não é uma cópia de ativos, código ou interface do Travian.
+
+## Jogar
+
+1. Abre [index.html](./index.html) num navegador moderno. Basta abrir o ficheiro; não é necessário compilar.
+2. Em alternativa, a partir da pasta do projeto, inicia um servidor local com `python3 -m http.server 8080` e visita `http://localhost:8080`.
+3. O jogo começa **em pausa**. Usa **+1 dia** para avançar manualmente ou escolhe **1×**, **5×** ou **20×**. A barra de espaço alterna entre pausa e 1× quando não estás a interagir com um botão.
+4. Seleciona províncias no mapa para fundar aldeias, enviar incursões ou tentar conquistar. Consulta as abas Aldeias, Exército, Diplomacia, Ranking e Crónicas.
+
+A gravação é automática via `localStorage`, **apenas neste navegador e dispositivo**. Ao reabrir o jogo, a simulação permanece em pausa. O botão **Nova campanha** substitui o save após confirmação.
+
+## O que já está implementado
+
+- **Mapa:** 40 províncias, com terreno, especializações de produção e fronteiras controladas por seis facções (tu + cinco governantes rivais).
+- **Economia:** madeira, barro, ferro e cereais; produção diária por aldeia, consumo de cereais das tropas e sete melhorias locais com custos e tempo de construção.
+- **Expansão:** colonização de províncias neutras dentro de três espaços de uma aldeia tua; preço que aumenta à medida que o império cresce; colonos sujeitos a tempo de viagem e concorrência pelo território.
+- **Exército:** lanceiros, espadachins, cavaleiros e catapultas; recrutamento com custos; tropas em trânsito, perdas, defesas, pilhagem, regresso e conquistas com catapultas.
+- **Diplomacia:** relações e opiniões persistentes; presentes, pactos de não agressão, alianças, pedidos de apoio, paz e guerra. As fações rivais também assinam pactos, formam alianças e declaram guerras entre si.
+- **Rivais simulados:** cinco estilos (agressivo, economista, diplomata, oportunista e defensivo) que produzem, gastam, melhoram aldeias, colonizam e podem combater. Não recebem tropas nem recursos gratuitos para manter a aparência de competição.
+- **Ranking:** pontuação calculada a partir de território, população, exército e recursos; varia com as ações de todos os governantes.
+- **Eventos:** ultimatos diplomáticos interrompem o avanço do tempo e exigem uma escolha.
+- **Condição de vitória:** liderar o ranking com pelo menos **10 aldeias** durante **4 dias consecutivos**. Os rivais também podem ganhar; perdes caso fiques sem aldeias.
+- **História emergente:** registo de colonizações, acordos, conflitos, conquistas e perdas.
+
+## Regras e atalhos
+
+| Ação | Regra |
+| --- | --- |
+| Colonização | Alvo neutro a até 3 espaços da tua aldeia mais próxima; custa recursos e demora dias |
+| Construção | Uma obra de cada vez por aldeia; melhorias de recursos demoram 2 dias, quartel 3 |
+| Recrutamento | Lotes de 5; cavaleiros exigem quartel 2 e catapultas quartel 3 |
+| Incursão | Envia 25–100% das tropas disponíveis; resultado depende de ataque, defesa e terreno |
+| Conquista | Exige atacar uma aldeia rival, sobreviver com pelo menos 2 catapultas e vencer decisivamente |
+| Acordo diplomático | Impede atacar aliados ou fações com pacto; podes romper o acordo ou declarar guerra |
+| Apoio aliado | Depois de uma aliança, podes pedir uma pequena ajuda de recursos e lanceiros, com tempo de recuperação |
+| Tempo | Dia ≈ 16 segundos a 1×, 3,2 segundos a 5×, 0,8 segundos a 20×; campanha parada enquanto está fechada |
+
+## Estrutura
+
+- `index.html` — ecrãs, painéis e estrutura da interface
+- `styles.css` — estilo dark fantasy responsivo, mapa, grelha e controlos
+- `game.js` — estado, regras, economia, combates, diplomacia, IA, renderização e save
+- `tests/smoke.test.cjs` — testes de regressão sem dependências externas
+
+## Executar testes
+
+Requer **Node.js 18+**:
+
+```sh
+node --test
+```
+
+Os testes cobrem mapa inicial, fundação, construções, recrutamento, ataques, diplomacia, avanço de rivais, integridade dos recursos e recuperação do save.
+
+## Limitações conscientes desta versão
+
+Esta é uma **primeira experiência jogável**, não um clone completo nem um jogo terminado. Ainda simplifica:
+
+- Os recursos de todas as aldeias do mesmo império são agregados num tesouro comum, em vez de haver armazéns e mercados separados.
+- As unidades militares disponíveis são geridas ao nível do império e a defesa divide-as abstratamente pelas aldeias; não há guarnições ou reforços com trajetos individuais.
+- Diplomacia por regras, não por modelos generativos; alianças dão acesso a apoio, mas ainda não planeiam ataques conjuntos.
+- As catapultas permitem conquistar, mas ainda não escolhem edifícios a destruir; não existem fakes ou ataques sincronizados.
+- Não existem tribos alternativas, exploradores, Maravilha do Mundo, replay/export de saves, dificuldade selecionável nem interface de tutorial completo.
+- A IA usa heurísticas transparentes, não modelos de aprendizagem; os diferentes estilos ainda precisam de mais afinação de equilíbrio.
+- Algumas ações de protótipo, como o recrutamento, são imediatas após o pagamento. Isso será revisto depois dos testes de diversão.
+
+## Próximo checkpoint de desenvolvimento
+
+**v0.2 — A guerra tem consequências:** defesa distribuída por aldeia, reforços com tempos reais, espionagem, catapultas por alvo, coordenação de ataques, perdas e recuperação de exércitos, melhor leitura dos relatórios e ajuste da dificuldade. Só depois vale a pena expandir as facções e o mapa.
+
+## Filosofia de design
+
+O mundo não espera pelo jogador **enquanto a campanha está a decorrer**, mas também não te pune por fechar o jogo. Os rivais devem crescer, reagir e poder vencer com as mesmas restrições económicas. O objetivo é preservar o conflito entre quatro decisões: **crescer, combater, competir e negociar**.
