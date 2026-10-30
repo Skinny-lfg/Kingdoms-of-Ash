@@ -221,6 +221,12 @@ function upkeep(id) {
       t.garrison = blankTroops();
     });
     migrateStrategy();
+    // Starting troops are split between the capital garrison and the mobile reserve.
+    FACTIONS.forEach(function(spec,id) {
+      const tile=game.tiles[spec.capital];
+      station(id,tile.id,'spear',id===0?8:7);
+      station(id,tile.id,'sword',id===0?4:3);
+    });
     message('The continent awakens', 'Six rulers claim their first villages. Only one may unite the Ashen Continent.');
     message('Your crown awaits', 'Build, recruit, expand and negotiate. End your turn to let rivals act.');
     save();
@@ -641,6 +647,15 @@ function produceAndBuild() {
     const finished = [];
     game.missions.forEach(function (m) { m.eta--; if (m.eta <= 0 && resolveMission(m)) finished.push(m.id); });
     game.missions = game.missions.filter(function (m) { return !finished.includes(m.id); });
+    if (game.day % 6 === 0) {
+      const open=game.tiles.filter(t=>t.owner<0);
+      const caravans=open.filter(t=>t.site==='caravan');
+      caravans.forEach(t=>t.site='wild');
+      const roaming=open.filter(t=>t.site==='wild'&&t.militia>0);
+      roaming.sort((a,b)=>strategicValue(b,0)-strategicValue(a,0));
+      caravans.forEach((_,i)=>{if(roaming[i])roaming[i].site='caravan';});
+      if (caravans.length) message('💰 Trade routes shifted','Merchant caravans moved across the Ashen Continent.');
+    }
     game.factions.slice(1).forEach(function (f) { aiAct(f.id); });
     createDiplomaticEvent(); checkEnd(); refresh();
   }
@@ -677,7 +692,7 @@ function produceAndBuild() {
   function renderMap() {
     $('world-map').innerHTML = game.tiles.map(function (t) {
       const f = t.owner < 0 ? null : game.factions[t.owner];
-      const symbol = f ? (t.id === FACTIONS[f.id].capital ? '🏰' : '🏘️') : TERRAIN[t.terrain].icon;
+      const symbol = f ? (t.id === FACTIONS[f.id].capital ? '🏰' : '🏘️') : t.site==='caravan'?'💰':t.site==='camp'?'🏴':t.site==='farm'?'🌾':TERRAIN[t.terrain].icon;
       const stance = f && f.id !== 0 ? relation(0, f.id).stance : null;
       const danger = incomingMarches().some(function (m) { return m.tile === t.id; });
       const status = danger ? '🚨' : stance === 'war' ? '⚔️' : stance === 'alliance' ? '🤝' : stance === 'pact' ? '🕊️' : '';
@@ -871,6 +886,7 @@ function renderArmy(){
       out += battleSide('🛡️ Defending army — ' + defender, r.defenders);
       if (r.militia.sent) out += '<div class="militia-row">🛡️ Local militia · Committed: <strong>' + r.militia.sent + '</strong> · Killed: <strong>' + r.militia.lost + '</strong> · Survivors: <strong>' + r.militia.survived + '</strong></div>';
       const total = RES.reduce(function (n, x) { return n + (r.loot[x.key] || 0); }, 0);
+      out += '<div class="militia-row">'+(r.mode==='raid'?'💰 Raid':r.mode==='siege'?'🏰 Siege':'🗡️ Field attack')+' · '+(r.terrain?TERRAIN[r.terrain].label:'Unknown terrain')+' · Supply '+Math.round((r.supply||1)*100)+'% · Carry capacity '+(r.carryCapacity||0)+'</div>';
       out += '<div class="loot-row"><strong>' + (total ? '💰 Resources looted' : '📦 Resources looted: none') + '</strong>' +
         (total ? '<span>' + costText(r.loot) + '</span><small>' + (defending ? 'Taken from your treasury by the raiders.' : 'Carried by surviving raiders; delivered when they return.') + '</small>' : '') + '</div>';
       out += '</article>';
