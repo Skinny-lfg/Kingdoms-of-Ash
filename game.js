@@ -384,68 +384,66 @@ function defendTroops(owner,tileId) {
       ' soldados. Saque: ' + costText(report.loot) + '.';
     message(icon + ' ' + title, detail, defending ? 'incoming' : 'outgoing', report.id);
   }
-  function resolveMission(m) {
-    const target = game.tiles[m.tile];
-    if (m.returnTrip) {
-      Object.keys(UNITS).forEach(function (k) { game.factions[m.owner].troops[k] += m.troops[k]; });
-      give(m.owner, m.loot);
-      if (m.owner === 0) message('🏠 Tropas regressaram', 'Os sobreviventes voltaram de ' + target.name + ' com ' + costText(m.loot) + '.');
-      return true;
-    }
-    if (m.mode === 'settle') {
-      if (target.owner === -1) {
-        target.owner = m.owner; target.militia = 0; target.levels = freshTileLevels();
-        message('🏡 Nova aldeia fundada', game.factions[m.owner].name + ' estabeleceu uma aldeia em ' + target.name + '.');
-      } else {
-        const refund = Object.fromEntries(RES.map(function (r) { return [r.key, Math.floor(SETTLE_BASE[r.key] * 0.4)]; }));
-        give(m.owner, refund);
-        if (m.owner === 0) message('Corrida perdida', 'Outro império ocupou ' + target.name + ' antes dos teus colonos. Parte dos recursos foi recuperada.', 'war');
-      }
-      return true;
-    }
-    const defender = target.owner;
-    const attackersBefore = clone(m.troops);
-    const defendersBefore = defendTroops(defender);
-    const militiaBefore = defender === -1 ? target.militia : 0;
-    const baseDefense = target.militia * 2.4 + armyPower(defendersBefore, true) + target.levels.wall * 16 + 8;
-    const attack = armyPower(m.troops, false) * (0.88 + rng() * 0.28);
-    const victory = attack >= baseDefense;
-    const atkLoss = victory ? Math.min(0.38, 0.09 + baseDefense / (attack + 1) * 0.19) : Math.min(0.92, 0.44 + baseDefense / (attack + baseDefense + 1) * 0.35);
-    const defLoss = victory ? 0.68 + rng() * 0.31 : 0.08 + rng() * 0.22;
-    m.troops = casualty(m.troops, atkLoss);
-    const defendersAfter = casualty(defendersBefore, defLoss);
-    if (defender >= 0) subtractLost(game.factions[defender].troops, defendersBefore, defendersAfter);
-    else target.militia = Math.floor(target.militia * (1 - defLoss));
-    let conquered = false;
-    if (victory) {
-      conquered = m.mode === 'conquer' && m.troops.siege >= 2 && defender >= 0 && attack >= baseDefense * 1.15;
-      if (conquered) {
-        target.owner = m.owner; target.militia = 0; target.construction = null;
-        Object.keys(target.levels).forEach(function (k) { target.levels[k] = Math.max(k === 'wall' || k === 'market' ? 0 : 1, target.levels[k] - 1); });
-        message('🏰 Província conquistada', game.factions[m.owner].name + ' tomou ' + target.name + ' a ' + game.factions[defender].name + '!', 'war');
-      } else {
-        const victim = defender >= 0 ? game.factions[defender] : null;
-        RES.forEach(function (r) {
-          const n = victim ? Math.min(victim.resources[r.key], 35 + rand(65)) : 28 + rand(60);
-          m.loot[r.key] += n;
-          if (victim) victim.resources[r.key] -= n;
-        });
-        if (defender !== 0 && m.owner !== 0) message('Incursão vitoriosa', game.factions[m.owner].name + ' saqueou ' + target.name + '.', 'war');
-      }
-    } else {
-      if (defender !== 0 && m.owner !== 0) message('Exército repelido', 'Os defensores de ' + target.name + ' travaram o ataque de ' + game.factions[m.owner].name + '.', 'war');
-    }
-    recordBattle({
-      attacker: m.owner, defender: defender, tile: m.tile, mode: m.mode,
-      victory: victory, conquered: conquered,
-      attackers: { sent: attackersBefore, survived: clone(m.troops), lost: troopLoss(attackersBefore, m.troops) },
-      defenders: { sent: defendersBefore, survived: defendersAfter, lost: troopLoss(defendersBefore, defendersAfter) },
-      militia: { sent: militiaBefore, survived: defender === -1 ? target.militia : 0, lost: defender === -1 ? militiaBefore - target.militia : 0 },
-      loot: clone(m.loot)
-    });
-    m.returnTrip = true; m.eta = travelDays(m.owner, m.tile);
-    return false;
-  }
+function resolveMission(m) {
+ const t=game.tiles[m.tile];
+ if(m.mode==='reinforce'){
+   if(t.owner===m.owner){Object.keys(UNITS).forEach(k=>t.garrison[k]+=(m.troops[k]||0));if(m.owner===0)message('Reinforcements arrived',armyCount(m.troops)+' units reached '+t.name+'.');}
+   else{Object.keys(UNITS).forEach(k=>game.factions[m.owner].troops[k]+=(m.troops[k]||0));if(m.owner===0)message('Reinforcements returned','The destination changed ownership.');}
+   return true;
+ }
+ if(m.returnTrip){
+   Object.keys(UNITS).forEach(k=>game.factions[m.owner].troops[k]+=(m.troops[k]||0));
+   give(m.owner,m.loot);
+   if(m.owner===0)message('Army returned',armyCount(m.troops)+' troops brought '+costText(m.loot)+'.');
+   return true;
+ }
+ if(m.mode==='settle'){
+   if(t.owner===-1){t.owner=m.owner;t.militia=0;t.garrison=blankTroops();t.levels=freshTileLevels();t.construction=null;
+     message('New settlement',game.factions[m.owner].name+' founded a village at '+t.name+'.');
+   }else{give(m.owner,Object.fromEntries(RES.map(r=>[r.key,Math.floor(SETTLE_BASE[r.key]*.4)])));
+     if(m.owner===0)message('Settlement blocked',t.name+' was occupied first. Part of the cost was refunded.','war');}
+   return true;
+ }
+ const defender=t.owner,attackersBefore=clone(m.troops),defendersBefore=defendTroops(defender,t.id);
+ const militiaBefore=defender<0?t.militia:0;
+ const defenseBonus=terrainDefense(t)*(t.fortifyUntil>=game.day?1.28:1);
+ const defense=(militiaBefore*2.3+armyPower(defendersBefore,true)+t.levels.wall*17+6)*defenseBonus;
+ const supply=logistics(m.owner,t.id);
+ const power=armyPower(m.troops)*(m.mode==='raid'?.92:m.mode==='siege'?.85:1.08)*
+   terrainAttack(t,m.troops)*supply*(.91+rng()*.18);
+ const win=power>=defense,ratio=defense/Math.max(1,power);
+ const atkLoss=win?(m.mode==='raid'?Math.min(.17,.018+ratio*.085):Math.min(.4,.07+ratio*.23)):
+   (m.mode==='raid'?Math.min(.34,.14+ratio*.07):Math.min(.85,.32+ratio*.18));
+ const defLoss=win?(m.mode==='raid'?.25:.6)+(m.mode==='raid'?.22:.35)*rng():
+   (m.mode==='raid'?.02:.08)+rng()*(m.mode==='raid'?.09:.22);
+ m.troops=casualty(m.troops,atkLoss);
+ const surviving=casualty(defendersBefore,defLoss);
+ if(defender>=0)Object.keys(UNITS).forEach(k=>t.garrison[k]=surviving[k]);
+ else t.militia=Math.floor(t.militia*(1-defLoss));
+ let conquered=false;
+ if(win&&m.mode==='siege'&&m.troops.siege>=2&&defender>=0&&power>=defense*1.1){
+   conquered=true;t.owner=m.owner;t.militia=0;t.garrison=blankTroops();t.construction=null;t.fortifyUntil=0;t.evacuateUntil=0;
+   Object.keys(t.levels).forEach(k=>t.levels[k]=Math.max(k==='wall'||k==='market'?0:1,t.levels[k]-1));
+   message('Village conquered',game.factions[m.owner].name+' captured '+t.name+'.','war');
+ }
+ const cap=lootCapacity(m.troops);
+ if(win&&!conquered&&m.mode==='raid'){
+   const stores=defender>=0?game.factions[defender].resources:t.stock;
+   const mult=t.evacuateUntil>=game.day?.18:1;
+   const available=Object.fromEntries(RES.map(r=>[r.key,Math.floor(stores[r.key]*mult)]));
+   const loot=distributeLoot(available,cap);
+   RES.forEach(r=>{const n=Math.min(stores[r.key],loot[r.key]);stores[r.key]-=n;m.loot[r.key]=n;});
+ }
+ recordBattle({attacker:m.owner,defender,tile:m.tile,origin:m.origin,mode:m.mode,victory:win,conquered,
+   terrain:t.terrain,supply,defensiveBonus:defenseBonus,carryCapacity:cap,
+   attackers:{sent:attackersBefore,survived:clone(m.troops),lost:troopLoss(attackersBefore,m.troops)},
+   defenders:{sent:defendersBefore,survived:surviving,lost:troopLoss(defendersBefore,surviving)},
+   militia:{sent:militiaBefore,survived:defender<0?t.militia:0,lost:defender<0?militiaBefore-t.militia:0},
+   loot:clone(m.loot)});
+ m.returnTrip=true;m.eta=travelDays(m.owner,m.tile);
+ return false;
+}
+
   function nearestFree(id) {
     return game.tiles.filter(function (t) { return t.owner === -1 && nearestDistance(id, t.id) <= 3 && !game.missions.some(function (m) { return m.mode === 'settle' && m.tile === t.id; }); })
       .sort(function (a, b) {
@@ -510,25 +508,33 @@ function defendTroops(owner,tileId) {
       train(id, k, k === 'siege' ? 2 : 4, true);
     }
   }
-  function produceAndBuild() {
-    game.factions.forEach(function (f) {
-      if (!ownTiles(f.id).length) return;
-      const rates = income(f.id);
-      RES.forEach(function (r) { f.resources[r.key] = Math.max(0, f.resources[r.key] + rates[r.key]); });
-      if (rates.grain < 0 && f.resources.grain === 0 && armyCount(f.troops)) {
-        const k = ['spear','sword','rider','siege'].find(function (u) { return f.troops[u] > 0; });
-        if (k) { f.troops[k] = Math.max(0, f.troops[k] - 2); if (f.id === 0) message('Deserções por fome', 'A falta de cereais obrigou soldados a abandonar o exército.', 'war'); }
-      }
-    });
-    game.tiles.forEach(function (t) {
-      if (!t.construction) return;
-      t.construction.left--;
-      if (t.construction.left <= 0) {
-        const key = t.construction.key; t.construction = null; t.levels[key]++;
-        if (t.owner === 0) message('Construção concluída', BUILDINGS[key].label + ' em ' + t.name + ' atingiu nível ' + t.levels[key] + '.');
-      }
-    });
-  }
+function produceAndBuild() {
+ game.factions.forEach(f=>{
+   if(!ownTiles(f.id).length)return;
+   const rates=income(f.id);
+   RES.forEach(r=>f.resources[r.key]=Math.max(0,f.resources[r.key]+rates[r.key]));
+   if(rates.grain<0&&f.resources.grain===0&&armyCount(totalArmy(f.id))){
+     const reserve=Object.keys(UNITS).find(k=>f.troops[k]>0),tile=ownTiles(f.id)[0];
+     const k=reserve||Object.keys(UNITS).find(k=>tile.garrison[k]>0);
+     if(k){if(reserve)f.troops[k]=Math.max(0,f.troops[k]-2);else tile.garrison[k]=Math.max(0,tile.garrison[k]-2);
+       if(f.id===0)message('Starvation','Two troops deserted because grain ran out.','war');}
+   }
+ });
+ game.tiles.forEach(t=>{
+   if(t.owner<0){
+     const factor=t.site==='farm'?1.5:t.site==='caravan'?1.8:t.site==='camp'?.55:1;
+     RES.forEach(r=>{const max=400+(t.site==='caravan'?250:t.site==='farm'?120:0);
+       t.stock[r.key]=Math.min(max,t.stock[r.key]+Math.ceil((8+(t.terrain===r.key?8:0))*factor));});
+     if(t.site!=='camp'&&game.day%3===0)t.militia=Math.min(14,t.militia+1);
+     if(t.site==='camp'&&game.day%5===0)t.militia=Math.min(30,t.militia+2);
+   }
+   if(t.construction){t.construction.left--;if(t.construction.left<=0){
+     const k=t.construction.key;t.construction=null;t.levels[k]++;
+     if(t.owner===0)message('Construction finished',BUILDINGS[k].label+' reached level '+t.levels[k]+' in '+t.name+'.');
+   }}
+ });
+}
+
   function createDiplomaticEvent() {
     if (game.event || game.day < 11 || game.day - game.lastEventDay < 16 || game.day % 16 !== 0 || !ownTiles(0).length) return;
     const nearby = game.factions.filter(function (f) {
