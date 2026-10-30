@@ -689,53 +689,63 @@ function produceAndBuild() {
   function actionButton(label, action, attrs, style, disabled) {
     return '<button class="button ' + (style || '') + '" type="button" data-action="' + action + '" ' + (attrs || '') + (disabled ? ' disabled' : '') + '>' + label + '</button>';
   }
-  function renderSelected() {
-    const t = game.tiles[game.selected];
-    const f = t.owner >= 0 ? game.factions[t.owner] : null;
-    const own = t.owner === 0;
-    const dist = nearestDistance(0, t.id);
-    const desc = own ? 'Esta aldeia produz para a tua coroa.' : f ? 'Esta aldeia pertence a outro império.' : 'Podes colonizar este território ou atacá-lo para obter recursos.';
-    let body = '<div class="province-body"><div class="province-name"><span class="province-emblem">' + (f ? '♜' : TERRAIN[t.terrain].icon) + '</span><div><h3>' + t.name + '</h3><p>' + (f ? f.name : 'Terras neutras') + '</p></div></div>';
-    body += '<p class="province-desc">' + TERRAIN[t.terrain].label + '. ' + desc + '</p>';
-    body += fact('Terreno', TERRAIN[t.terrain].icon + ' ' + TERRAIN[t.terrain].label);
-    if (t.owner >= 0) {
-      body += '<div class="garrison"><strong>🛡️ Guarnição ' + (own ? 'disponível para defesa' : '(estimada)') + '</strong><div class="garrison-units">' +
-        Object.keys(UNITS).map(function (k) { return '<span>' + UNITS[k].icon + ' ' + format(defendTroops(t.owner)[k]) + '</span>'; }).join('') +
-        '</div></div>';
-    } else body += fact('Defensores neutros', '🛡️ ' + t.militia + ' milicianos');
-    if (!own) body += fact('Distância', dist === 999 ? 'Sem acesso' : dist + ' espaços');
-    body += fact('Fortificação', f ? '🏰 Paliçada nível ' + t.levels.wall : 'Sem muralha');
-    if (t.construction) body += fact('Em construção', BUILDINGS[t.construction.key].label + ' · ' + t.construction.left + 'd');
-    body += '<div class="action-stack">';
-    if (own) {
-      body += '<p class="context-label">O que queres fazer?</p><div class="action-group">';
-      body += actionButton('🌾 Melhorar produção', 'open-production', '', 'primary');
-      body += actionButton('🏰 Edifícios e defesas', 'open-infrastructure', '', 'subtle');
-      body += actionButton('⚔️ Recrutar tropas', 'open-army', '', 'subtle');
-      body += '</div><p class="context-tip">Escolhe uma opção. Os campos aumentam os recursos por dia; o quartel desbloqueia novas unidades.</p>';
-    } else if (!game.ended) {
-      if (t.owner === -1) {
-        const cost = settleCost(0);
-        body += '<p class="context-label">Expansão</p><div class="action-group">';
-        body += actionButton('🏡 Fundar aldeia', 'settle', '', 'primary', dist > 3 || !canAfford(0, cost));
-        body += '</div><span class="action-hint">Custo: ' + costText(cost) + '. Alcance: até 3 espaços.</span>';
-      } else {
-        const stance = relation(0, t.owner).stance;
-        body += '<p class="context-label">Reino rival</p>';
-        body += '<div class="action-group">' + actionButton('♧ Ver diplomacia', 'open-diplomacy', '', 'primary') + '</div>';
-        if (stance === 'pact' || stance === 'alliance') body += '<p class="muted-note">Tens um acordo com este reino. Terás de o romper antes de atacar.</p>';
-      }
-      body += '<h4 class="action-subheading">Ações militares</h4>';
-      body += '<div class="force-label"><span>Tropas a enviar</span><strong id="force-number">' + game.force + '%</strong></div>';
-      body += '<input class="force-slider" type="range" id="force-slider" min="25" max="100" step="25" value="' + game.force + '" aria-label="Percentagem de tropas enviadas">';
-      const protectedTarget = f && ['pact','alliance'].includes(relation(0, f.id).stance);
-      body += '<div class="action-group">';
-      body += actionButton('⚔️ Saquear recursos', 'raid', '', 'subtle', armyCount(extractArmy(0, game.force)) < 3 || protectedTarget);
-      if (f) body += actionButton('♜ Conquistar aldeia', 'conquer', '', 'danger', player().troops.siege < 2 || protectedTarget);
-      body += '</div><span class="action-hint">Os ataques demoram dias. Para conquistar são precisas catapultas e uma vitória decisiva.</span>';
-    }
-    body += '</div></div>'; $('selected-province').innerHTML = body;
-  }
+function renderSelected(){
+ const t=game.tiles[game.selected],f=t.owner>=0?game.factions[t.owner]:null,own=t.owner===0;
+ const dist=nearestDistance(0,t.id),known=t.scoutUntil>=game.day;
+ const sites={farm:'🌾 Farmstead',caravan:'💰 Trade caravan',camp:'🏴 Bandit camp',wild:'🌿 Wilderness'};
+ let body='<div class="province-body"><div class="province-name"><span class="province-emblem">'+(f?'🏰':TERRAIN[t.terrain].icon)+'</span><div><h3>'+t.name+'</h3><p>'+
+   (f?f.name:sites[t.site])+'</p></div></div><p class="province-desc">'+TERRAIN[t.terrain].label+
+   (CHOKEPOINTS.includes(t.id)?' · Strategic pass (+110 ranking points)':'')+'</p>';
+ body+=fact('Terrain',TERRAIN[t.terrain].icon+' '+TERRAIN[t.terrain].label)+
+   fact('Defensive terrain',Math.round((terrainDefense(t)-1)*100)+'%')+
+   fact('Supply reach',Math.round(logistics(0,t.id)*100)+'%');
+ if(!own)body+=fact('Distance',dist===999?'Out of range':dist+' tiles');
+ if(f){
+   body+='<div class="garrison"><strong>🛡️ '+(own?'Stationed garrison':known?'Scouted garrison':'Unknown defenders')+'</strong>';
+   if(own||known)body+='<div class="garrison-units">'+Object.keys(UNITS).map(k=>'<span>'+UNITS[k].icon+' '+defendTroops(t.owner,t.id)[k]+'</span>').join('')+'</div>';
+   else body+='<small>Scout to discover enemy strength.</small>';
+   body+='</div>'+fact('Walls','Level '+t.levels.wall);
+ }else{
+   body+=fact('Local militia',known?t.militia+' guards':'Unknown (scout to reveal)')+
+    fact('Supplies',known?costText(t.stock):'Unknown (scout to reveal)');
+ }
+ if(t.fortifyUntil>=game.day)body+=fact('Prepared defenses','Until turn '+t.fortifyUntil);
+ if(t.construction)body+=fact('Construction',BUILDINGS[t.construction.key].label+' · '+t.construction.left+' turn(s)');
+ body+='<div class="action-stack">';
+ if(own){
+   body+='<p class="context-label">Manage this village</p><div class="action-group">'+
+      actionButton('🌾 Resource fields','open-production','','primary')+
+      actionButton('🏘️ Town center','open-infrastructure','','subtle')+
+      actionButton('🛡️ Garrison & reserves','open-army','','subtle')+'</div>';
+   const incoming=game.missions.filter(m=>m.owner!==0&&!m.returnTrip&&m.tile===t.id);
+   if(incoming.length)body+='<p class="incoming-alert">🚨 '+incoming.length+' incoming attack(s); next arrival in '+Math.min(...incoming.map(m=>m.eta))+' turn(s).</p>';
+   body+='<div class="action-group">'+
+     actionButton('🏰 Prepare defenses (3 turns)','fortify','data-tile="'+t.id+'"','small',t.fortifyUntil>game.day||!canAfford(0,{wood:45,clay:40,iron:25,grain:20}))+
+     actionButton('🏃 Evacuate troops / stores','evacuate','data-tile="'+t.id+'"','small subtle',!canAfford(0,{grain:20}))+'</div>';
+ }else if(!game.ended){
+   if(t.owner<0){
+     body+='<h4 class="action-subheading">Expansion</h4><div class="action-group">'+
+       actionButton('🏡 Found settlement','settle','','primary',dist>3||!canAfford(0,settleCost(0)))+
+       '</div><small>Settlement cost: '+costText(settleCost(0))+'</small>';
+   }else{
+     body+='<div class="action-group">'+actionButton('🤝 Diplomacy','open-diplomacy','','subtle')+'</div>';
+   }
+   if(known)body+='<small>🔎 Scout intelligence valid until turn '+t.scoutUntil+'.</small>';
+   body+='<div class="action-group">'+actionButton('🔎 Scout (30 wood, 40 grain)','scout','','small',dist>7||!canAfford(0,{wood:30,grain:40}))+'</div>';
+   body+='<h4 class="action-subheading">Military orders</h4><div class="force-label"><span>Reserve troops to send</span><strong id="force-number">'+game.force+'%</strong></div>'+
+     '<input class="force-slider" type="range" id="force-slider" min="25" max="100" step="25" value="'+game.force+'" aria-label="Percentage of reserve troops to send">';
+   const blocked=f&&['pact','alliance'].includes(relation(0,f.id).stance);
+   const insufficient=armyCount(extractArmy(0,game.force))<3;
+   body+='<div class="action-group">'+
+     actionButton('⚔️ Raid: steal supplies','raid','','small',insufficient||blocked)+
+     actionButton('🗡️ Attack: destroy army','attack','','small',insufficient||blocked);
+   if(f)body+=actionButton('🏰 Siege: conquer','siege','','small danger',insufficient||blocked||extractArmy(0,game.force).siege<2);
+   body+='</div><small>Raids minimise casualties and collect limited supplies. Attacks destroy armies; sieges conquer villages.</small>';
+   if(blocked)body+='<p class="muted-note">Break your alliance or pact to attack this faction.</p>';
+ }
+ $('selected-province').innerHTML=body+'</div></div>';
+}
+
   function renderVillage() {
     const villages = ownTiles(0);
     const focused = game.tiles[game.selected].owner === 0 ? game.tiles[game.selected] : villages[0];
@@ -754,21 +764,46 @@ function produceAndBuild() {
     return out + '</div></div>';
   }
 
-  function renderArmy() {
-    const f = player();
-    let out = '<div class="workspace-body"><p class="section-intro">Recruta unidades e envia forças a partir do mapa. Os soldados enviados deixam temporariamente o exército disponível.</p><div class="stat-grid">';
-    out += '<div class="stat-card"><span>Soldados disponíveis</span><strong>' + format(armyCount(f.troops)) + '</strong></div><div class="stat-card"><span>Poder ofensivo</span><strong>' + format(armyPower(f.troops)) + '</strong></div><div class="stat-card"><span>Consumo / dia</span><strong>' + format(upkeep(0)) + '</strong></div></div><h3 class="subheading">Recrutamento</h3><div class="unit-list">';
-    const barracks = Math.max.apply(null, ownTiles(0).map(function (t) { return t.levels.barracks; }).concat([0]));
-    Object.keys(UNITS).forEach(function (k) {
-      const u = UNITS[k]; const cost = Object.fromEntries(RES.map(function (r) { return [r.key, u.cost[r.key] * 5]; }));
-      out += '<div class="entry"><div><strong>' + u.icon + ' ' + u.label + ' · ' + format(f.troops[k]) + '</strong><small>Ataque ' + u.attack + ' · Defesa ' + u.defense + ' · Quartel Nv. ' + u.unlock + '<br>5 unidades: ' + costText(cost) + '</small></div>' + actionButton('Recrutar 5', 'train', 'data-unit="' + k + '"', 'small', barracks < u.unlock || !canAfford(0, cost)) + '</div>';
-    });
-    out += '</div><h3 class="subheading">Exércitos em marcha</h3><div class="mission-list">';
-    const moving = game.missions.filter(function (m) { return m.owner === 0; });
-    if (!moving.length) out += '<p class="muted-note">Nenhuma missão em curso. Seleciona uma província no mapa para enviar colonos ou tropas.</p>';
-    moving.forEach(function (m) { out += '<div class="entry"><div><strong>' + (m.mode === 'settle' ? 'Colonos' : m.mode === 'raid' ? 'Incursão' : 'Conquista') + ' · ' + game.tiles[m.tile].name + '</strong><small>' + (m.returnTrip ? 'A regressar' : 'A caminho') + ' · ' + m.eta + ' dia(s)' + (m.troops ? ' · ' + armyCount(m.troops) + ' soldados' : '') + '</small></div><span class="pill">' + (m.returnTrip ? 'Regresso' : 'Em marcha') + '</span></div>'; });
-    return out + '</div></div>';
+function renderArmy(){
+ const f=player(),villages=ownTiles(0),active=game.tiles[game.selected].owner===0?game.tiles[game.selected]:villages[0];
+ let out='<div class="workspace-body"><p class="section-intro">Reserve troops can raid and attack. Stationed troops defend their village. Reinforcements take turns to travel.</p>';
+ out+='<div class="stat-grid"><div class="stat-card"><span>Reserve troops</span><strong>'+armyCount(f.troops)+'</strong></div>'+
+  '<div class="stat-card"><span>Total armies</span><strong>'+armyCount(totalArmy(0))+'</strong></div>'+
+  '<div class="stat-card"><span>Food upkeep / turn</span><strong>'+upkeep(0)+'</strong></div></div>';
+ out+='<h3 class="subheading">Recruit to reserve</h3><div class="unit-list">';
+ const barracks=Math.max(...villages.map(t=>t.levels.barracks),0);
+ Object.keys(UNITS).forEach(k=>{
+   const u=UNITS[k],cost=Object.fromEntries(RES.map(r=>[r.key,u.cost[r.key]*5]));
+   out+='<div class="entry"><div><strong>'+u.icon+' '+u.label+' · '+f.troops[k]+' reserve</strong><small>'+
+     'Attack '+u.attack+' · Defense '+u.defense+' · Barracks Lv. '+u.unlock+'<br>5 units: '+costText(cost)+
+     '</small></div>'+actionButton('Recruit 5','train','data-unit="'+k+'"','small',barracks<u.unlock||!canAfford(0,cost))+'</div>';
+ });
+ out+='</div>';
+ if(active){
+  out+='<h3 class="subheading">🛡️ Garrison — '+active.name+'</h3><p class="section-intro">Station reserves to defend. Withdraw troops to use them in field operations.</p><div class="unit-list">';
+  Object.keys(UNITS).forEach(k=>{
+    out+='<div class="entry"><div><strong>'+UNITS[k].icon+' '+UNITS[k].label+'</strong><small>Stationed: '+active.garrison[k]+' · Reserve: '+f.troops[k]+'</small></div><div class="entry-actions">'+
+       actionButton('Station 5','station','data-unit="'+k+'" data-tile="'+active.id+'"','small',f.troops[k]===0)+
+       actionButton('Withdraw 5','withdraw','data-unit="'+k+'" data-tile="'+active.id+'"','small',active.garrison[k]===0)+'</div></div>';
+  });
+  out+='</div><div class="action-group">'+actionButton('🏰 Fortify','fortify','data-tile="'+active.id+'"','small',active.fortifyUntil>game.day||!canAfford(0,{wood:45,clay:40,iron:25,grain:20}))+
+    actionButton('🏃 Evacuate','evacuate','data-tile="'+active.id+'"','small subtle',!canAfford(0,{grain:20}))+'</div>';
+  if(villages.length>1){
+   out+='<h3 class="subheading">Send reinforcements (50% of garrison)</h3><div class="action-group">';
+   villages.filter(v=>v.id!==active.id).forEach(v=>out+=actionButton('🛡️ '+v.name,'reinforce',
+     'data-from="'+active.id+'" data-to="'+v.id+'"','small',!armyCount(active.garrison)));
+   out+='</div>';
   }
+ }
+ out+='<h3 class="subheading">Troops in motion</h3><div class="mission-list">';
+ const moving=game.missions.filter(m=>m.owner===0||(!m.returnTrip&&game.tiles[m.tile].owner===0));
+ if(!moving.length)out+='<p class="muted-note">No marching armies. Select a target on the map or send reinforcements.</p>';
+ moving.forEach(m=>out+='<div class="entry"><div><strong>'+((m.owner===0)?'⚔️ Outgoing':'🚨 Incoming')+' '+m.mode+' · '+game.tiles[m.tile].name+
+   '</strong><small>'+(m.returnTrip?'Returning':'Arriving')+' in '+m.eta+' turn(s) · '+(m.troops?armyCount(m.troops)+' units':'Settlers')+
+   '</small></div></div>');
+ return out+'</div></div>';
+}
+
   function stanceName(stance) { return { neutral: 'Neutro', pact: 'Não agressão', alliance: 'Aliança', war: 'Em guerra' }[stance] || stance; }
   function renderDiplomacy() {
     let out = '<div class="workspace-body"><p class="section-intro">Uma aliança protege fronteiras e permite pedir apoio. Presentes melhoram relações, mas rivais poderosos também podem ameaçar-te.</p><div class="diplomacy-list">';
@@ -1032,6 +1067,23 @@ function produceAndBuild() {
     else if (action === 'focus-building') { if (BUILDINGS[btn.dataset.key]) { game.buildingFocus = btn.dataset.key; scrollTo = 'workspace'; } }
     else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'wood'; scrollTo = 'scene'; }
     else if (action === 'open-infrastructure') { navigateTo('village', 'infrastructure', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'barracks'; scrollTo = 'scene'; }
+    else if (action === 'station' || action === 'withdraw') {
+      const targetId=Number(btn.dataset.tile),key=btn.dataset.unit;
+      const ok=action==='station'?station(0,targetId,key,5):withdraw(0,targetId,key,5);
+      if(!ok)notice('No units available.',true);
+    }
+    else if (action === 'reinforce') {
+      if(!sendReinforcement(0,Number(btn.dataset.from),Number(btn.dataset.to),50))notice('No stationed troops available.',true);
+    }
+    else if (action === 'fortify') {
+      if(!fortify(0,Number(btn.dataset.tile)))notice('Cannot fortify this village now.',true);
+    }
+    else if (action === 'evacuate') {
+      if(!evacuate(0,Number(btn.dataset.tile)))notice('Evacuation unavailable.',true);
+    }
+    else if (action === 'scout') {
+      if(!scout(0,game.selected))notice('Scouting unavailable or too expensive.',true);
+    }
     else if (action === 'open-army') { navigateTo('army'); scrollTo = 'workspace'; }
     else if (action === 'open-diplomacy') { navigateTo('diplomacy'); scrollTo = 'workspace'; }
     else if (action === 'open-ranking') { navigateTo('ranking'); scrollTo = 'workspace'; }
@@ -1048,7 +1100,7 @@ function produceAndBuild() {
       if (!queueBuilding(0, Number(btn.dataset.village), btn.dataset.key)) notice('Construção indisponível ou recursos insuficientes.', true);
     } else if (action === 'train') {
       if (!train(0, btn.dataset.unit, 5)) notice('Não é possível recrutar estas unidades.', true);
-    } else if (['settle','raid','conquer'].includes(action)) {
+    } else if (['settle','raid','attack','siege'].includes(action)) {
       if (!launch(0, game.selected, action, game.force)) notice('Missão indisponível: verifica custos, tropas, alcance e acordos.', true);
     } else if (['gift','pact','alliance','aid','war','peace','break'].includes(action)) {
       diplomacyAction(action, factionId);
