@@ -1,7 +1,8 @@
 (function () {
   'use strict';
 
-  const SAVE_KEY = 'kingdoms-of-ash-v01';
+  const SAVE_KEY = 'kingdoms-of-ash-v03';
+  const LEGACY_SAVE_KEY = 'kingdoms-of-ash-v01';
   const VERSION = 2;
   const OWNER = 'Skinny-lfg/Kingdoms-of-Ash';
   const TERRAIN = {
@@ -167,7 +168,7 @@
   }
   function load() {
     try {
-      const data = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+      const data = JSON.parse(localStorage.getItem(SAVE_KEY) || localStorage.getItem(LEGACY_SAVE_KEY) || 'null');
       if (data && (data.version === 1 || data.version === VERSION) && Array.isArray(data.tiles) && data.tiles.length === 40 && Array.isArray(data.factions) && data.factions.length === 6) {
         game = data;
         game.version = VERSION;
