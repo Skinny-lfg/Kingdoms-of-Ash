@@ -871,7 +871,7 @@ function renderArmy(){
   }
   function renderReports() {
     let out = '<div class="workspace-body"><p class="section-intro">📜 Your offensive and defensive battles: forces committed, survivors, losses, plunder and terrain effects.</p>';
-    if (!game.reports.length) return out + '<p class="muted-note">Ainda não ocorreram batalhas against a tua coroa. Envia um ataque ou espera por uma ofensiva rival.</p></div>';
+    if (!game.reports.length) return out + '<p class="muted-note">No battles yet. Raid a nearby site or prepare to defend against enemy attacks.</p></div>';
     game.reports.forEach(function (r) {
       const defending = r.defender === 0;
       const success = defending ? !r.victory : r.victory;
@@ -881,7 +881,7 @@ function renderArmy(){
       const defender = r.defender < 0 ? 'Neutral militia' : game.factions[r.defender].name;
       out += '<article id="battle-report-' + r.id + '" class="battle-report ' + (success ? 'battle-win' : 'battle-loss') + '">';
       out += '<div class="battle-header"><div><span class="battle-type">' + side + ' · TURN ' + r.day + '</span><h3>' + game.tiles[r.tile].name + ' <span class="pill ' + (success ? 'pact' : 'war') + '">' + (r.conquered ? '🏰 Conquista' : status) + '</span></h3></div><span class="battle-direction">' + (defending ? '🛡️ Recebido' : '⚔️ Enviado') + '</span></div>';
-      out += '<p class="battle-summary">' + attacker + ' ⚔️ ' + defender + ' · ' + (r.mode === 'conquer' ? 'Siege attempt' : 'Incursão') + '</p>';
+      out += '<p class="battle-summary">' + attacker + ' ⚔️ ' + defender + ' · ' + (r.mode === 'conquer' ? 'Siege attempt' : 'Raid') + '</p>';
       out += battleSide('⚔️ Attacking army — ' + attacker, r.attackers);
       out += battleSide('🛡️ Defending army — ' + defender, r.defenders);
       if (r.militia.sent) out += '<div class="militia-row">🛡️ Local militia · Committed: <strong>' + r.militia.sent + '</strong> · Killed: <strong>' + r.militia.lost + '</strong> · Survivors: <strong>' + r.militia.survived + '</strong></div>';
@@ -930,7 +930,7 @@ function renderArmy(){
     positions.forEach(function (p) {
       const lv = active.levels[p.key];
       const building = active.construction && active.construction.key === p.key;
-      out += '<button type="button" class="scene-slot ' + (game.buildingFocus === p.key ? 'active' : '') + '" data-building="' + p.key + '" data-action="focus-building" data-key="' + p.key + '" style="--x:' + p.x + '%;--y:' + p.y + '%" aria-label="' + short[p.key] + ', nível ' + lv + ', mostrar melhoria">';
+      out += '<button type="button" class="scene-slot ' + (game.buildingFocus === p.key ? 'active' : '') + '" data-building="' + p.key + '" data-action="focus-building" data-key="' + p.key + '" style="--x:' + p.x + '%;--y:' + p.y + '%" aria-label="' + short[p.key] + ', level ' + lv + ', mostrar melhoria">';
       out += '<span class="slot-icon" aria-hidden="true">' + icons[p.key] + '</span><span class="slot-name">' + short[p.key] + '</span><span class="slot-level">Level ' + lv + '</span>';
       if (building) out += '<span class="slot-queue">Em obras · ' + active.construction.left + 'd</span>';
       out += '</button>';
@@ -939,7 +939,7 @@ function renderArmy(){
     $('scene-ground').innerHTML = out;
   }
   function renderWorkspace() {
-    const titles = { village: ['VILLAGE UPGRADES', game.villageMode === 'production' ? 'Resource fields' : 'Buildings and defense'], map: ['THE CONTINENT', 'Province map'], army: ['MILITARY STRATEGY', 'Army and marches'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELTHE CONTINENT', 'Empire rankings'], reports: ['MILITARY REPORTS', '📜 Reports de batalha'], chronicle: ['LIVING HISTORY', 'World chronicle'] };
+    const titles = { village: ['VILLAGE UPGRADES', game.villageMode === 'production' ? 'Resource fields' : 'Buildings and defense'], map: ['THE CONTINENT', 'Province map'], army: ['MILITARY STRATEGY', 'Army and marches'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELTHE CONTINENT', 'Empire rankings'], reports: ['MILITARY REPORTS', '📜 Battle reports'], chronicle: ['LIVING HISTORY', 'World chronicle'] };
     const item = titles[game.tab] || titles.village;
     $('workspace-kicker').textContent = item[0]; $('workspace-title').textContent = item[1];
     const layouts = { village: renderVillage, map: function () { return ''; }, army: renderArmy, diplomacy: renderDiplomacy, ranking: renderRanking, reports: renderReports, chronicle: renderChronicle };
@@ -971,7 +971,7 @@ function renderArmy(){
     if (!game.event) { node.classList.add('hidden'); node.innerHTML = ''; return; }
     const rival = game.factions[game.event.faction];
     node.classList.remove('hidden');
-    node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Diplomatic ultimatum"><p class="eyebrow">A MESSENGER AT THE GATES</p><h2>Peace has a price</h2><p>Um emissário de <strong>' + rival.name + '</strong> reached your court. They demand 70 wood and 70 grain for peace. Refusal may trigger war.</p><div class="event-actions">' + actionButton('Pay tribute', 'event-pay', '', 'primary', !canAfford(0, {wood:70,grain:70})) + actionButton('Reject demand', 'event-refuse', '', 'danger') + '</div></div>';
+    node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Diplomatic ultimatum"><p class="eyebrow">A MESSENGER AT THE GATES</p><h2>Peace has a price</h2><p>An envoy of <strong>' + rival.name + '</strong> reached your court. They demand 70 wood and 70 grain for peace. Refusal may trigger war.</p><div class="event-actions">' + actionButton('Pay tribute', 'event-pay', '', 'primary', !canAfford(0, {wood:70,grain:70})) + actionButton('Reject demand', 'event-refuse', '', 'danger') + '</div></div>';
   }
   function renderGuidance() {
     const capital = game.tiles[19];
