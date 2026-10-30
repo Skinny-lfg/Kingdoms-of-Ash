@@ -7,7 +7,7 @@ const vm = require('node:vm');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'game.js'), 'utf8');
 
-function startGame(persistentStore) {
+function startGame(persistentStore, confirmReset) {
   const handlers = {};
   const elements = {};
   const store = persistentStore || new Map();
@@ -26,7 +26,7 @@ function startGame(persistentStore) {
     getItem(key) { return store.has(key) ? store.get(key) : null; },
     setItem(key, value) { store.set(key, value); }
   };
-  const window = { confirm() { return true; } };
+  const window = { confirm() { return confirmReset !== false; } };
   vm.runInNewContext(source, {
     document, localStorage, window, setInterval() {}, setTimeout() { return 1; }, clearTimeout() {}
   }, { filename: 'game.js' });
@@ -521,4 +521,55 @@ test('strategy: caravan locations shift during the campaign', () => {
   assert.ok(original.length>0);
   assert.ok(next.length>0);
   assert.ok(original.some(id=>!next.includes(id)));
+});
+
+
+test('fields: every resource and building slot has a defined icon and English label', () => {
+  const g=startGame();
+  const fieldHtml=g.html('workspace-content');
+  assert.ok(fieldHtml.includes('🌲 Lumber Camp'));
+  assert.ok(fieldHtml.includes('🧱 Clay Pit'));
+  assert.ok(fieldHtml.includes('⛏️ Iron Mine'));
+  assert.ok(fieldHtml.includes('🌾 Grain Farm'));
+  assert.ok(!fieldHtml.includes('undefined'));
+  assert.ok(g.html('scene-ground').includes('RESOURCE')===false || !g.html('scene-ground').includes('undefined'));
+  g.click({tab:'village',mode:'infrastructure'});
+  assert.ok(g.html('workspace-content').includes('Barracks'));
+  assert.ok(!g.html('workspace-content').includes('undefined'));
+});
+
+test('save migration: translate existing Portuguese village names without losing the campaign', () => {
+  const base=startGame().state();
+  base.tiles[19].name='Coração de Cinza';
+  base.tiles[20].name='Campina Seca';
+  base.tiles[0].name='Karn Vell';
+  base.day=12;
+  base.factions[0].resources.wood=732;
+  base.tiles[19].levels.wood=4;
+  const g=startGame(new Map([['kingdoms-of-ash-strategy-en',JSON.stringify(base)]]));
+  assert.equal(g.state().tiles[19].name,'Ashheart');
+  assert.equal(g.state().tiles[20].name,'Dryfield');
+  assert.equal(g.state().tiles[0].name,'Ashen Keep');
+  assert.equal(g.state().day,12);
+  assert.equal(g.state().factions[0].resources.wood,732);
+  assert.equal(g.state().tiles[19].levels.wood,4);
+  assert.ok(g.html('scene-ground').includes('Ashheart'));
+});
+
+test('Reset Campaign: confirmation cancels safely or replaces only strategy save', () => {
+  const key='kingdoms-of-ash-strategy-en';
+  const initial=startGame().state();
+  initial.day=9;
+  initial.factions[0].resources.wood=809;
+  const store=new Map([[key,JSON.stringify(initial)],['kingdoms-of-ash-v04','legacy-campaign-safe']]);
+  const no=startGame(store,false);
+  no.click({},'new-game');
+  assert.equal(no.state().day,9);
+  assert.equal(no.state().factions[0].resources.wood,809);
+  const yes=startGame(store,true);
+  yes.click({},'new-game');
+  assert.equal(yes.state().day,1);
+  assert.equal(yes.state().tiles[19].name,'Ashheart');
+  assert.equal(store.get('kingdoms-of-ash-v04'),'legacy-campaign-safe');
+  assert.equal(JSON.parse(store.get(key)).day,1);
 });
