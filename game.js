@@ -134,7 +134,7 @@
   function createGame() {
     game = {
       version: VERSION, seed: 1837659, day: 1, speed: 0, selected: 19, tab: 'village',
-      force: 75, villageMode: 'production', missionSeq: 0, reportSeq: 0, ended: false, event: null, lastEventDay: 0,
+      force: 75, villageMode: 'production', missionSeq: 0, reportSeq: 0, ended: false, endSummaryDismissed: false, event: null, lastEventDay: 0,
       relations: {}, missions: [], reports: [], dominance: {}, logs: [], factions: [], tiles: []
     };
     FACTIONS.forEach(function (spec, id) {
@@ -175,6 +175,7 @@
         game.force = game.force || 75;
         game.villageMode = game.villageMode || 'production';
         game.reports = Array.isArray(game.reports) ? game.reports : [];
+        game.endSummaryDismissed = !!game.endSummaryDismissed;
         game.reportSeq = Number.isInteger(game.reportSeq) ? game.reportSeq : game.reports.reduce(function (n, r) { return Math.max(n, r.id || 0); }, 0);
         return true;
       }
@@ -681,9 +682,10 @@
   function renderEvent() {
     const node = $('event-layer');
     if (game.ended) {
+      if (game.endSummaryDismissed) { node.classList.add('hidden'); node.innerHTML = ''; return; }
       const victor = game.ended.winner >= 0 ? game.factions[game.ended.winner].name : 'Os reinos rivais';
       node.classList.remove('hidden');
-      node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Fim da campanha"><p class="eyebrow">A ÚLTIMA CRÓNICA</p><h2>' + (game.ended.winner === 0 ? 'A coroa é tua' : 'O império caiu') + '</h2><p>' + victor + ' venceu a campanha. ' + (game.ended.winner === 0 ? 'Conquistaste o direito de governar o continente.' : 'As escolhas dos reinos transformaram o mapa sem piedade.') + ' O mundo chegou ao seu desfecho no dia ' + game.day + '.</p><div class="event-actions">' + actionButton('Começar nova campanha', 'restart', '', 'primary') + '</div></div>';
+      node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Fim da campanha"><p class="eyebrow">A ÚLTIMA CRÓNICA</p><h2>' + (game.ended.winner === 0 ? 'A coroa é tua' : 'O império caiu') + '</h2><p>' + victor + ' venceu a campanha. ' + (game.ended.winner === 0 ? 'Conquistaste o direito de governar o continente.' : 'As escolhas dos reinos transformaram o mapa sem piedade.') + ' O mundo chegou ao seu desfecho no dia ' + game.day + '.</p><div class="event-actions">' + actionButton('📜 Ver relatórios', 'review-end', '', 'subtle') + actionButton('Começar nova campanha', 'restart', '', 'primary') + '</div></div>';
       return;
     }
     if (!game.event) { node.classList.add('hidden'); node.innerHTML = ''; return; }
@@ -773,8 +775,13 @@
     const tileId = btn.dataset.tile !== undefined ? Number(btn.dataset.tile) : game.selected;
     const factionId = Number(btn.dataset.faction);
     if (action === 'restart') { createGame(); refresh(); return; }
+    if (action === 'review-end' && game.ended) {
+      game.endSummaryDismissed = true;
+      navigateTo('reports'); markReportsRead(); refresh(); focusWorkspace(); return;
+    }
     if (game.ended && !['open-ranking','open-reports','view-report'].includes(action)) return;
     let scrollTo = '';
+    let focusReportId = 0;
     if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'workspace'; }
     else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; }
     else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); scrollTo = 'workspace'; }
@@ -784,6 +791,7 @@
     else if (action === 'open-ranking') { navigateTo('ranking'); scrollTo = 'workspace'; }
     else if (action === 'open-reports' || action === 'view-report') {
       navigateTo('reports'); markReportsRead(); scrollTo = 'workspace';
+      if (action === 'view-report') focusReportId = Number(btn.dataset.reportId) || 0;
     }
     else if (action === 'guide-expand') {
       const t = nearestFree(0);
@@ -813,6 +821,10 @@
     refresh();
     if (scrollTo === 'workspace') focusWorkspace();
     if (scrollTo === 'selection') focusSelection();
+    if (focusReportId) {
+      const entry = $('battle-report-' + focusReportId);
+      if (entry && typeof entry.scrollIntoView === 'function') entry.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
   document.addEventListener('click', function (ev) {
     const btn = ev.target.closest('button'); if (!btn || btn.disabled) return;
