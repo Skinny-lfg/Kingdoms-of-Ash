@@ -1,0 +1,155 @@
+/* Kingdoms of Ash — readable English strategy map.
+   Apenas apresentação: preserva províncias, seleção, combate e saves. */
+
+.map-panel .map-viewport {
+  padding: 18px 16px;
+  background: #e1e9db;
+}
+.map-panel .map-viewport::before { background: none; }
+.map-panel .map-overlay { display: none; }
+.map-panel .world-map {
+  max-width: 1100px;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: none;
+  gap: 8px;
+}
+
+.map-panel .tile {
+  position: relative;
+  min-width: 0;
+  min-height: 100px;
+  max-height: none;
+  aspect-ratio: auto;
+  gap: 4px;
+  padding: 13px 6px 10px;
+  border: 1px solid #a9b7a5;
+  border-radius: 7px;
+  background: #edf2e9;
+  color: #26382c;
+  box-shadow: 0 1px 2px #243b2820;
+  font-family: "DM Sans", system-ui, sans-serif;
+  cursor: pointer;
+  transition: border-color .12s, background-color .12s, transform .12s;
+}
+.map-panel .tile::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  z-index: 0;
+  opacity: 1;
+  background: #c7d4c2;
+  pointer-events: none;
+}
+.map-panel .tile.terrain-wood { background: #e4efe3; }
+.map-panel .tile.terrain-clay { background: #efe7df; }
+.map-panel .tile.terrain-iron { background: #e3ebef; }
+.map-panel .tile.terrain-grain { background: #f1eddc; }
+.map-panel .tile.terrain-balanced { background: #e7ede5; }
+.map-panel .tile.owned {
+  border: 2px solid var(--owner);
+  background: #f9f7ed;
+  padding: 12px 5px 9px;
+  box-shadow: 0 1px 3px #283c2b24;
+}
+.map-panel .tile.owned::before { background: var(--owner); }
+.map-panel .tile .tile-symbol {
+  font-size: 26px;
+  line-height: 1;
+  filter: none;
+}
+.map-panel .tile .tile-name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  max-width: 100%;
+  min-height: 2.48em;
+  padding: 0;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1.24;
+  letter-spacing: 0;
+  color: #283b2f;
+  text-shadow: none;
+}
+.map-panel .tile .tile-level {
+  font-size: 9px;
+  font-weight: 650;
+  line-height: 1.1;
+  color: #616c5c;
+}
+.map-panel .tile:not(.owned) .tile-level { display: none; }
+/* O símbolo central já indica o terreno neutro; evita duplicar ícones. */
+.map-panel .tile .tile-terrain { display: none; }
+.map-panel .tile .tile-marker {
+  top: 5px;
+  right: 5px;
+  padding: 2px 4px;
+  border: 1px solid var(--owner);
+  border-radius: 4px;
+  background: #fffdf3;
+  color: #364636;
+  font-size: 9px;
+  line-height: 1.1;
+  font-weight: 800;
+}
+.map-panel .tile .tile-status {
+  bottom: 4px;
+  right: 4px;
+  padding: 2px;
+  border-radius: 4px;
+  background: #fffdf3;
+  font-size: 11px;
+}
+.map-panel .tile:hover {
+  transform: translateY(-1px);
+  border-color: #648358;
+  background: #fffdf2;
+}
+.map-panel .tile:focus-visible {
+  outline: 3px solid #3d6d52;
+  outline-offset: 2px;
+  z-index: 4;
+}
+.map-panel .tile.selected {
+  background: #fff7d9;
+  outline: 3px solid #d59a38;
+  outline-offset: 1px;
+  z-index: 3;
+}
+.map-panel .tile.tile-threat {
+  border-color: #bd5147;
+  box-shadow: inset 0 0 0 2px #bd5147, 0 1px 4px #9b4d5433;
+}
+.map-panel .legend {
+  gap: 8px 14px;
+  padding: 11px 16px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.map-panel .legend-item { gap: 5px; }
+.map-panel .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+@media (max-width: 800px) {
+  .map-panel .map-viewport { padding: 12px 9px; }
+  .map-panel .world-map {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .map-panel .tile { min-height: 90px; padding: 11px 4px 8px; }
+  .map-panel .tile.owned { padding: 10px 3px 7px; }
+  .map-panel .tile .tile-symbol { font-size: 23px; }
+  .map-panel .tile .tile-name { font-size: 10px; }
+  .map-panel .tile .tile-marker { font-size: 8px; }
+}
+@media (max-width: 360px) {
+  .map-panel .world-map { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .map-panel .tile .tile-name { font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-panel .tile { transition: none; }
+}
