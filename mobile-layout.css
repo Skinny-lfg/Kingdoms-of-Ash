@@ -1,0 +1,148 @@
+/* Kingdoms of Ash v0.4 — responsive, touch-first navigation.
+   Loaded after styles.css and travian-layout.css to override legacy breakpoints. */
+.mobile-bottom-nav,.mobile-village-switch{display:none}
+@media (max-width:800px){
+  :root{font-size:14px}
+  *,*::before,*::after{box-sizing:border-box}
+  html{scroll-padding-top:10px}
+  body{min-width:280px;overflow-x:hidden}
+  .shell{width:100%;max-width:100%;padding:8px 9px calc(88px + env(safe-area-inset-bottom))}
+  .masthead{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px 8px;align-items:center;padding:4px 2px 9px}
+  .brand{min-width:0;gap:8px;flex:none}
+  .brand .crest{width:39px;height:43px;font-size:23px;flex:0 0 auto}
+  .brand .eyebrow{font-size:7px;letter-spacing:.10em;margin-bottom:1px}
+  .brand h1{font-size:clamp(14px,4.5vw,19px);letter-spacing:0;line-height:1.15}
+  .campaign-status{width:auto;order:0;min-width:0;text-align:right;display:grid;gap:1px;justify-items:end}
+  .campaign-status strong{font-size:15px;white-space:nowrap}
+  .campaign-status .muted,.campaign-status .tiny-label{display:none}
+  .time-controls{grid-column:1/-1;order:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) minmax(74px,1.4fr);gap:5px;width:100%;margin:2px 0 0}
+  .time-controls .speed,.time-controls .button{width:100%;min-width:0;min-height:37px;padding:6px 4px;font-size:12px}
+  .resource-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin:8px 0 12px;min-width:0}
+  .resource{display:grid;grid-template-columns:17px minmax(0,1fr);grid-template-rows:1fr auto;gap:3px 3px;align-items:center;padding:7px 4px;min-width:0;min-height:59px;flex:none}
+  .resource-icon{grid-column:1;grid-row:1;width:17px;text-align:center;font-size:15px}
+  .resource-main{grid-column:2;grid-row:1;min-width:0}
+  .resource-main .label{font-size:8px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .resource-main .value{font-size:clamp(11px,3.3vw,15px);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .resource .income{grid-column:1/-1;grid-row:2;justify-self:center;font-size:10px;line-height:1;white-space:nowrap}
+  .navigation-strip{display:none;position:fixed;z-index:100;left:9px;right:9px;bottom:calc(73px + env(safe-area-inset-bottom));margin:0;padding:12px;
+    background:linear-gradient(180deg,#fcf7e7,#e9e0c9);border:1px solid #a99c7a;border-radius:13px;box-shadow:0 12px 40px #252b2270}
+  .navigation-strip.mobile-open{display:block}
+  .navigation-strip .nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;overflow:visible;min-width:0;padding:0}
+  .navigation-strip .nav .nav-button:nth-child(-n+4){display:none}
+  .navigation-strip .nav .nav-button{width:100%;max-width:none;min-width:0;min-height:68px;padding:7px 3px;display:flex;flex-direction:column;white-space:normal}
+  .navigation-strip .nav .nav-button span{font-size:24px}
+  .navigation-strip .nav .nav-button b{font-size:11px}
+  .navigation-strip .nav-actions{padding:10px 0 0;margin:8px 0 0;border:0;border-top:1px solid #d2c7af;text-align:center}
+  .navigation-strip #new-game{min-height:36px;width:100%;font-weight:600}
+  .mobile-bottom-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch;
+    position:fixed;z-index:101;bottom:0;left:0;right:0;min-height:65px;
+    padding:4px 5px calc(5px + env(safe-area-inset-bottom));
+    background:#f9f5e9;border-top:1px solid #b9ae95;box-shadow:0 -5px 18px #28352b30}
+  .mobile-bottom-nav button{display:flex;min-width:0;min-height:57px;flex-direction:column;justify-content:center;align-items:center;gap:3px;
+    background:transparent;border:1px solid transparent;border-radius:8px;color:#6a6655;font-weight:600;padding:3px 1px}
+  .mobile-bottom-nav button span{font-size:21px;line-height:1.2}
+  .mobile-bottom-nav button b{font-size:10px;white-space:nowrap;line-height:1.25}
+  .mobile-bottom-nav button.active,.mobile-bottom-nav button[aria-expanded="true"]{background:#e6edd8;color:#355c35;border-color:#bfcea9}
+  .mobile-bottom-nav button:focus-visible{outline:2px solid #446b3f;outline-offset:-2px}
+  .game-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:start;
+    grid-template-areas:"picker" "scene" "map" "intelligence" "workspace" "guidance" "villages" "news"}
+  .game-layout .center-area,.game-layout .right-area{display:contents}
+  .mobile-village-switch{grid-area:picker;display:flex;align-items:center;gap:10px;background:#faf5e8;
+    border:1px solid #c9bfa9;border-radius:8px;padding:8px 11px;margin:0;min-width:0}
+  .mobile-village-switch label{font-size:12px;font-weight:700;white-space:nowrap;color:#5e6045}
+  .mobile-village-switch select{flex:1;min-width:0;min-height:36px;font:600 13px "DM Sans",system-ui,sans-serif;color:#424e36;
+    background:#fffdfa;border:1px solid #b7ac91;border-radius:7px;padding:5px 10px}
+  .game-layout:not(.village-mode) .mobile-village-switch{display:none}
+  .village-scene{grid-area:scene;min-width:0}
+  .map-panel{grid-area:map;min-width:0}
+  .workspace{grid-area:workspace;min-width:0;min-height:0}
+  .intelligence{grid-area:intelligence;min-width:0;display:none;position:static}
+  .game-layout.map-mode .intelligence{display:block}
+  .villages-panel{grid-area:villages;min-width:0}
+  .guidance{grid-area:guidance;min-width:0;margin:0}
+  .dispatches{grid-area:news;min-width:0}
+  .section-header,.section-header.small{padding:12px 13px 10px;gap:8px;flex-wrap:wrap}
+  .section-header h2{font-size:16px}
+  .section-header .eyebrow{font-size:8px}
+  .scene-mini-hint{display:none}
+  .scene-ground{position:relative;display:block;min-height:0;padding:12px 10px 10px}
+  .scene-ground:before{display:none}
+  .scene-ring,.scene-ring.infrastructure{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
+    width:100%;height:auto;min-height:0;border:0;border-radius:12px;background:#c4d0a3a6;
+    margin:0;padding:10px;box-shadow:inset 0 0 0 1px #72895862}
+  .scene-heart{position:relative;left:auto;top:auto;transform:none;grid-column:1/-1;display:flex;align-items:center;justify-content:flex-start;
+    gap:9px;min-width:0;max-width:100%;padding:8px 10px;border-radius:9px;text-align:left;box-shadow:none;
+    border:1px solid #a9a078;background:#f4edd3}
+  .scene-heart .house{font-size:27px;line-height:1}
+  .scene-heart strong{font-size:12px;max-width:none;flex:1;min-width:0;overflow-wrap:anywhere}
+  .scene-heart small{font-size:9px;max-width:96px;text-align:right}
+  .scene-slot{position:relative;left:auto;top:auto;transform:none;display:flex;flex-direction:column;
+    min-width:0;width:100%;min-height:96px;padding:9px 6px;gap:3px;border-radius:12px;
+    touch-action:manipulation;box-shadow:0 3px 0 #6e684b48,0 5px 10px #3a4c2830}
+  .scene-slot:hover{transform:none}
+  .scene-slot .slot-icon{font-size:28px}
+  .scene-slot .slot-name{font-size:12px}
+  .scene-slot .slot-level{font-size:10px}
+  .scene-slot .slot-queue{font-size:10px}
+  .scene-slot.active{outline:2px solid #527b44;outline-offset:1px;border-color:#507a41}
+  .scene-note{position:static;display:block;text-align:center;padding:7px;margin-top:9px;font-size:11px;border-radius:7px}
+  .scene-footnote{display:none}
+  .workspace-body{padding:12px}
+  .workspace-body .section-intro{font-size:12px;line-height:1.5}
+  .workspace .stat-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:10px 0}
+  .workspace .stat-card{min-width:0;padding:8px 6px}
+  .workspace .stat-card span{font-size:10px}
+  .workspace .stat-card strong{font-size:14px;overflow-wrap:anywhere}
+  .workspace .subheading{margin:13px 0 8px;font-size:13px}
+  .workspace .entry{display:flex;align-items:center;gap:10px;flex-direction:row;padding:12px 10px}
+  .workspace .entry>div:first-child{flex:1;min-width:0}
+  .workspace .entry small{font-size:11px;line-height:1.6;overflow-wrap:anywhere}
+  .workspace .entry .button{flex:0 0 auto;min-width:82px;min-height:42px;padding:7px 9px}
+  /* In village view, the diagram itself chooses which building to upgrade. */
+  .game-layout.village-mode #workspace .building-list .entry:not(.selected-building){display:none}
+  .game-layout.village-mode #workspace .entry.selected-building{background:#ecf2dc;border:2px solid #829f63}
+  .game-layout.village-mode #workspace .entry.selected-building .button{background:#627e43;color:#fff;border-color:#45642e}
+  .map-panel .map-viewport{padding:13px 8px}
+  .map-overlay{font-size:9px;letter-spacing:.10em;text-align:center;margin-bottom:10px;white-space:normal}
+  .world-map{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:none;gap:5px;max-width:none;margin:0}
+  .tile{aspect-ratio:auto;max-height:none;min-height:68px;padding:4px 2px;gap:2px;border-radius:6px}
+  .tile .tile-symbol{font-size:20px;line-height:1.1}
+  .tile .tile-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;
+    font-size:9px;line-height:1.15;max-width:100%;overflow-wrap:anywhere}
+  .tile .tile-level{font-size:8px}
+  .tile .tile-marker{font-size:7px;top:1px;right:1px}
+  .map-tools{font-size:10px}
+  .legend{padding:9px 8px}
+  .legend-item{font-size:9px}
+  .intelligence .province-body{padding:12px}
+  .intelligence .action-stack .button{min-height:43px}
+  .force-slider{width:100%;min-height:32px}
+  .guidance{padding:12px}
+  .guidance-copy strong{font-size:12px}
+  .guidance-copy p{font-size:11px}
+  .guidance-actions{margin-top:8px}
+  .guidance-actions .button{min-height:38px}
+  .villages-panel .empire-mini{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px}
+  .villages-panel .mini-stat{margin:0;padding:3px 0}
+  .footline{margin-top:12px}
+  .event-layer{padding:12px}
+  .event-card{max-width:100%;max-height:calc(100dvh - 36px);overflow:auto}
+  .toast{left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));max-width:none;text-align:center}
+}
+@media (max-width:360px){
+  .shell{padding-left:6px;padding-right:6px}
+  .scene-ground{padding:9px 7px}
+  .scene-ring,.scene-ring.infrastructure{padding:7px;gap:7px}
+  .scene-slot{min-height:89px;padding:7px 3px}
+  .resource{padding:6px 2px}
+  .resource-main .label{font-size:8px}
+  .resource-main .value{font-size:12px}
+  .tile{min-height:65px}
+  .tile .tile-name{font-size:8px}
+}
+@media (min-width:801px){
+  .navigation-strip{display:flex}
+}
+@media(prefers-reduced-motion:reduce){
+  .mobile-bottom-nav button,.scene-slot{transition:none}
+}

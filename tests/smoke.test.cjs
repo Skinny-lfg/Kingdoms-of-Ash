@@ -34,8 +34,9 @@ function startGame(persistentStore) {
     html(id) { return (elements[id] || {}).innerHTML || ''; },
     advance() { window.KingdomsOfAsh.advance(); },
     click(data) {
-      handlers.click({ target: { closest() { return { dataset: data, disabled: false }; } } });
+      handlers.click({ target: { id: data.id || '', closest() { return { id: data.id || '', dataset: data, disabled: false }; } } });
     },
+    change(id, value) { handlers.change({ target: { id, value } }); },
     store
   };
 }
@@ -219,4 +220,32 @@ test('a lista lateral permite mudar de aldeia e usa o mesmo save', () => {
   assert.equal(g.state().selected, 20);
   assert.equal(g.state().tab, 'village');
   assert.ok(g.html('scene-heading') !== null);
+});
+
+test('navegação mobile alterna ecrãs sem alterar a campanha', () => {
+  const g = startGame();
+  const resources = JSON.stringify(g.state().factions[0].resources);
+  g.click({ id: 'mobile-more-toggle' });
+  g.click({ tab: 'map' });
+  assert.equal(g.state().tab, 'map');
+  g.click({ tab: 'army' });
+  assert.equal(g.state().tab, 'army');
+  g.click({ tab: 'village', mode: 'infrastructure' });
+  assert.equal(g.state().villageMode, 'infrastructure');
+  g.click({ tab: 'village', mode: 'production' });
+  assert.equal(g.state().villageMode, 'production');
+  assert.equal(JSON.stringify(g.state().factions[0].resources), resources);
+});
+
+test('seletor mobile muda para uma aldeia nossa e recusa território adversário', () => {
+  const g = startGame();
+  g.click({ tab: 'map' });
+  g.click({ tile: '20' });
+  assert.equal(g.state().selected, 20);
+  g.change('mobile-village-select', '19');
+  assert.equal(g.state().selected, 19);
+  assert.equal(g.state().tab, 'village');
+  g.change('mobile-village-select', '0');
+  assert.equal(g.state().selected, 19);
+  assert.ok(g.html('mobile-village-select').includes('option value="19"'));
 });
