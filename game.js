@@ -773,7 +773,7 @@
     const tileId = btn.dataset.tile !== undefined ? Number(btn.dataset.tile) : game.selected;
     const factionId = Number(btn.dataset.faction);
     if (action === 'restart') { createGame(); refresh(); return; }
-    if (game.ended && action !== 'open-ranking') return;
+    if (game.ended && !['open-ranking','open-reports','view-report'].includes(action)) return;
     let scrollTo = '';
     if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'workspace'; }
     else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; }
@@ -782,6 +782,9 @@
     else if (action === 'open-army') { navigateTo('army'); scrollTo = 'workspace'; }
     else if (action === 'open-diplomacy') { navigateTo('diplomacy'); scrollTo = 'workspace'; }
     else if (action === 'open-ranking') { navigateTo('ranking'); scrollTo = 'workspace'; }
+    else if (action === 'open-reports' || action === 'view-report') {
+      navigateTo('reports'); markReportsRead(); scrollTo = 'workspace';
+    }
     else if (action === 'guide-expand') {
       const t = nearestFree(0);
       if (t) { game.selected = t.id; scrollTo = 'selection'; }
@@ -814,10 +817,8 @@
   document.addEventListener('click', function (ev) {
     const btn = ev.target.closest('button'); if (!btn || btn.disabled) return;
     if (btn.dataset.tile !== undefined && !btn.dataset.action) { game.selected = Number(btn.dataset.tile); refresh(); focusSelection(); return; }
-    if (btn.dataset.tab) { game.tab = btn.dataset.tab; refresh(); focusWorkspace(); return; }
+    if (btn.dataset.tab) { game.tab = btn.dataset.tab; if (game.tab === 'reports') markReportsRead(); refresh(); focusWorkspace(); return; }
     if (btn.dataset.action) { handleAction(btn); return; }
-    if (btn.dataset.speed) { game.speed = Number(btn.dataset.speed); accumulated = 0; refresh(); return; }
-    if (btn.id === 'time-pause') { game.speed = 0; accumulated = 0; refresh(); }
     if (btn.id === 'next-day') { advanceDay(); }
     if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); }
     if (btn.id === 'back-to-map') { const map = typeof document.querySelector === 'function' ? document.querySelector('.map-panel') : null; if (map && typeof map.scrollIntoView === 'function') map.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
@@ -831,18 +832,8 @@
     $('force-number').textContent = game.force + '%';
     save();
   });
-  document.addEventListener('keydown', function (ev) {
-    if (ev.code === 'Space' && !['INPUT','TEXTAREA','BUTTON'].includes(document.activeElement.tagName) && !game.event) {
-      ev.preventDefault(); game.speed = game.speed === 0 ? 1 : 0; accumulated = 0; refresh();
-    }
-  });
+  // Os turnos só avançam por decisão explícita do jogador.
   load(); render();
-  setInterval(function () {
-    if (!game || !game.speed || game.event || game.ended) return;
-    accumulated += 250;
-    const duration = SPEED_MS[game.speed] || SPEED_MS[1];
-    if (accumulated >= duration) { accumulated = 0; advanceDay(); }
-  }, 250);
   // Minimal debug interface for repeatable tests; never writes to network.
   window.KingdomsOfAsh = {
     getState: function () { return clone(game); },
