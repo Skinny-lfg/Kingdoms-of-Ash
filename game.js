@@ -663,7 +663,7 @@ function produceAndBuild() {
   function resBar() {
     const rates = income(0);
     $('resources').innerHTML = RES.map(function (r) {
-      const n = rates[r.key]; return '<div class="resource"><div class="resource-icon">' + r.icon + '</div><div class="resource-main"><div class="label">' + r.label + '</div><div class="value">' + format(player().resources[r.key]) + '</div></div><span class="income ' + (n < 0 ? 'negative' : '') + '">' + (n >= 0 ? '+' : '') + format(n) + '/d</span></div>';
+      const n = rates[r.key]; return '<div class="resource"><div class="resource-icon">' + r.icon + '</turniv><div class="resource-main"><div class="label">' + r.label + '</turniv><div class="value">' + format(player().resources[r.key]) + '</turniv></turniv><span class="income ' + (n < 0 ? 'negative' : '') + '">' + (n >= 0 ? '+' : '') + format(n) + '/turn</span></turniv>';
     }).join('');
   }
   function incomingMarches() {
@@ -673,17 +673,17 @@ function produceAndBuild() {
     const incoming = incomingMarches();
     const outgoing = game.missions.filter(function (m) { return m.owner === 0 && !m.returnTrip; });
     const unread = game.reports.filter(function (r) { return !r.read; }).length;
-    let html = '<div class="military-label">🪖 <strong>Available reserves</strong></div><div class="military-units">';
+    let html = '<div class="military-label">🪖 <strong>Available reserves</strong></turniv><div class="military-units">';
     Object.keys(UNITS).forEach(function (k) {
       html += '<span class="military-unit" title="' + UNITS[k].label + '">' + UNITS[k].icon + ' <strong>' + format(player().troops[k]) + '</strong></span>';
     });
-    html += '</div><div class="military-activity">';
+    html += '</turniv><div class="military-activity">';
     if (incoming.length) {
       const soonest = Math.min.apply(null, incoming.map(function (m) { return m.eta; }));
-      html += '<span class="incoming-alert" role="status">🚨 ' + incoming.length + ' incoming attack(s) · ' + soonest + ' turno(s)</span>';
+      html += '<span class="incoming-alert" role="status">🚨 ' + incoming.length + ' incoming attack(s) · ' + soonest + ' turn(s)</span>';
     } else html += '<span class="calm-alert">🛡️ No attacks incoming</span>';
     if (outgoing.length) html += '<span>⚔️ ' + outgoing.length + ' outgoing mission(s)</span>';
-    html += '</div><div class="military-action">' + actionButton('📜 Reports' + (unread ? ' (' + unread + ')' : ''), 'open-reports', '', unread ? 'primary' : 'subtle small') + '</div>';
+    html += '</turniv><div class="military-action">' + actionButton('📜 Reports' + (unread ? ' (' + unread + ')' : ''), 'open-reports', '', unread ? 'primary' : 'subtle small') + '</turniv>';
     $('military-strip').innerHTML = html;
     const badge = $('report-badge');
     badge.textContent = String(unread);
@@ -709,7 +709,7 @@ function produceAndBuild() {
       return '<span class="legend-item"><i class="legend-dot" style="--dot:' + f.color + '"></i>' + f.name + '</span>';
     }).join('') + '<span class="legend-item">🌿 Neutral</span><span class="legend-item">⚔️ War</span><span class="legend-item">🤝 Alliance</span><span class="legend-item">🚨 Under attack</span>';
   }
-  function fact(label, value) { return '<div class="fact-row"><span>' + label + '</span><strong>' + value + '</strong></div>'; }
+  function fact(label, value) { return '<div class="fact-row"><span>' + label + '</span><strong>' + value + '</strong></turniv>'; }
   function actionButton(label, action, attrs, style, disabled) {
     return '<button class="button ' + (style || '') + '" type="button" data-action="' + action + '" ' + (attrs || '') + (disabled ? ' disabled' : '') + '>' + label + '</button>';
   }
@@ -718,7 +718,7 @@ function renderSelected(){
  const dist=nearestDistance(0,t.id),known=t.scoutUntil>=game.day;
  const sites={farm:'🌾 Farmstead',caravan:'💰 Trade caravan',camp:'🏴 Bandit camp',wild:'🌿 Wilderness'};
  let body='<div class="province-body"><div class="province-name"><span class="province-emblem">'+(f?'🏰':TERRAIN[t.terrain].icon)+'</span><div><h3>'+t.name+'</h3><p>'+
-   (f?f.name:sites[t.site])+'</p></div></div><p class="province-desc">'+TERRAIN[t.terrain].label+
+   (f?f.name:sites[t.site])+'</p></turniv></turniv><p class="province-desc">'+TERRAIN[t.terrain].label+
    (CHOKEPOINTS.includes(t.id)?' · Strategic pass (+110 ranking points)':'')+'</p>';
  body+=fact('Terrain',TERRAIN[t.terrain].icon+' '+TERRAIN[t.terrain].label)+
    fact('Defensive terrain',Math.round((terrainDefense(t)-1)*100)+'%')+
@@ -726,9 +726,9 @@ function renderSelected(){
  if(!own)body+=fact('Distance',dist===999?'Out of range':dist+' tiles');
  if(f){
    body+='<div class="garrison"><strong>🛡️ '+(own?'Stationed garrison':known?'Scouted garrison':'Unknown defenders')+'</strong>';
-   if(own||known)body+='<div class="garrison-units">'+Object.keys(UNITS).map(k=>'<span>'+UNITS[k].icon+' '+defendTroops(t.owner,t.id)[k]+'</span>').join('')+'</div>';
+   if(own||known)body+='<div class="garrison-units">'+Object.keys(UNITS).map(k=>'<span>'+UNITS[k].icon+' '+defendTroops(t.owner,t.id)[k]+'</span>').join('')+'</turniv>';
    else body+='<small>Scout to discover enemy strength.</small>';
-   body+='</div>'+fact('Walls','Level '+t.levels.wall);
+   body+='</turniv>'+fact('Walls','Level '+t.levels.wall);
  }else{
    body+=fact('Local militia',known?t.militia+' guards':'Unknown (scout to reveal)')+
     fact('Supplies',known?costText(t.stock):'Unknown (scout to reveal)');
@@ -741,26 +741,26 @@ function renderSelected(){
    body+='<p class="context-label">Manage this village</p><div class="action-group">'+
       actionButton('🌾 Resource fields','open-production','','primary')+
       actionButton('🏘️ Town center','open-infrastructure','','subtle')+
-      actionButton('🛡️ Garrison & reserves','open-army','','subtle')+'</div>';
+      actionButton('🛡️ Garrison & reserves','open-army','','subtle')+'</turniv>';
    const incoming=game.missions.filter(m=>m.owner!==0&&!m.returnTrip&&m.tile===t.id);
    if(incoming.length)body+='<p class="incoming-alert">🚨 '+incoming.length+' incoming attack(s); next arrival in '+Math.min(...incoming.map(m=>m.eta))+' turn(s).</p>';
    body+='<div class="action-group">'+
      actionButton('🏰 Prepare defenses (3 turns)','fortify','data-tile="'+t.id+'"','small',t.fortifyUntil>game.day||!canAfford(0,{wood:45,clay:40,iron:25,grain:20}))+
      actionButton('🏃 Evacuate troops / stores','evacuate','data-tile="'+t.id+'"','small subtle',!canAfford(0,{grain:20}))+
-     (t.terrain==='wood'?actionButton('🌲 Lay ambush','ambush','data-tile="'+t.id+'"','small',t.ambushUntil>=game.day||!canAfford(0,{wood:15,grain:40})):'')+'</div>';
+     (t.terrain==='wood'?actionButton('🌲 Lay ambush','ambush','data-tile="'+t.id+'"','small',t.ambushUntil>=game.day||!canAfford(0,{wood:15,grain:40})):'')+'</turniv>';
    const attacker=game.missions.find(m=>m.owner!==0&&!m.returnTrip&&m.tile===t.id);
-   if(attacker&&game.tiles[attacker.origin]?.owner===attacker.owner)body+='<div class="action-group">'+actionButton('🗡️ Counterattack origin','counterattack','data-target="'+attacker.origin+'"','small danger',armyCount(extractArmy(0,game.force))<3)+'</div>';
+   if(attacker&&game.tiles[attacker.origin]?.owner===attacker.owner)body+='<div class="action-group">'+actionButton('🗡️ Counterattack origin','counterattack','data-target="'+attacker.origin+'"','small danger',armyCount(extractArmy(0,game.force))<3)+'</turniv>';
  }else if(!game.ended){
    if(t.owner<0){
      body+='<h4 class="action-subheading">Expansion</h4><div class="action-group">'+
        actionButton('🏡 Found settlement','settle','','primary',dist>3||!canAfford(0,settleCost(0)))+
-       '</div><small>Settlement cost: '+costText(settleCost(0))+'</small>';
+       '</turniv><small>Settlement cost: '+costText(settleCost(0))+'</small>';
    }else{
-     body+='<div class="action-group">'+actionButton('🤝 Diplomacy','open-diplomacy','','subtle')+'</div>';
+     body+='<div class="action-group">'+actionButton('🤝 Diplomacy','open-diplomacy','','subtle')+'</turniv>';
    }
    if(known)body+='<small>🔎 Scout intelligence valid until turn '+t.scoutUntil+'.</small>';
-   body+='<div class="action-group">'+actionButton('🔎 Scout (30 wood, 40 grain)','scout','','small',dist>7||!canAfford(0,{wood:30,grain:40}))+'</div>';
-   body+='<h4 class="action-subheading">Military orders</h4><div class="force-label"><span>Reserve troops to send</span><strong id="force-number">'+game.force+'%</strong></div>'+
+   body+='<div class="action-group">'+actionButton('🔎 Scout (30 wood, 40 grain)','scout','','small',dist>7||!canAfford(0,{wood:30,grain:40}))+'</turniv>';
+   body+='<h4 class="action-subheading">Military orders</h4><div class="force-label"><span>Reserve troops to send</span><strong id="force-number">'+game.force+'%</strong></turniv>'+
      '<input class="force-slider" type="range" id="force-slider" min="25" max="100" step="25" value="'+game.force+'" aria-label="Percentage of reserve troops to send">';
    const blocked=f&&['pact','alliance'].includes(relation(0,f.id).stance);
    const insufficient=armyCount(extractArmy(0,game.force))<3;
@@ -768,59 +768,59 @@ function renderSelected(){
      actionButton('⚔️ Raid: steal supplies','raid','','small',insufficient||blocked)+
      actionButton('🗡️ Attack: destroy army','attack','','small',insufficient||blocked);
    if(f)body+=actionButton('🏰 Siege: conquer','siege','','small danger',insufficient||blocked||extractArmy(0,game.force).siege<2);
-   body+='</div><small>Raids minimise casualties and collect limited supplies. Attacks destroy armies; sieges conquer villages.</small>';
+   body+='</turniv><small>Raids minimise casualties and collect limited supplies. Attacks destroy armies; sieges conquer villages.</small>';
    if(blocked)body+='<p class="muted-note">Break your alliance or pact to attack this faction.</p>';
  }
- $('selected-province').innerHTML=body+'</div></div>';
+ $('selected-province').innerHTML=body+'</turniv></turniv>';
 }
 
   function renderVillage() {
     const villages = ownTiles(0);
     const focused = game.tiles[game.selected].owner === 0 ? game.tiles[game.selected] : villages[0];
-    if (!focused) return '<div class="workspace-body"><p class="muted-note">Your empire has no villages.</p></div>';
+    if (!focused) return '<div class="workspace-body"><p class="muted-note">Your empire has no villages.</p></turniv>';
     let out = '<div class="workspace-body"><p class="section-intro">Choose a field or building above to upgrade it. Each village has one build queue and empire resources are shared.</p>';
-    out += '<div class="stat-grid"><div class="stat-card"><span>Villages</span><strong>' + villages.length + '</strong></div><div class="stat-card"><span>Population</span><strong>' + format(population(0)) + '</strong></div><div class="stat-card"><span>Total production</span><strong>' + format(RES.reduce(function (n, r) { return n + Math.max(0, income(0)[r.key]); }, 0)) + '</strong></div></div>';
+    out += '<div class="stat-grid"><div class="stat-card"><span>Villages</span><strong>' + villages.length + '</strong></turniv><div class="stat-card"><span>Population</span><strong>' + format(population(0)) + '</strong></turniv><div class="stat-card"><span>Total production</span><strong>' + format(RES.reduce(function (n, r) { return n + Math.max(0, income(0)[r.key]); }, 0)) + '</strong></turniv></turniv>';
     out += '<h3 class="subheading">Active village — ' + focused.name + '</h3>';
     out += '<div class="building-list">';
     Object.keys(BUILDINGS).filter(function (k) { return game.villageMode === 'infrastructure' ? !['wood','clay','iron','grain'].includes(k) : ['wood','clay','iron','grain'].includes(k); }).sort(function (a, b) { return (a === game.buildingFocus ? -1 : b === game.buildingFocus ? 1 : 0); }).forEach(function (k) {
       const lv = focused.levels[k]; const cost = buildingCost(focused, k);
       const can = !focused.construction && lv < 5 && canAfford(0, cost);
       const status = focused.construction && focused.construction.key === k ? 'Em obras · ' + focused.construction.left + 'd' : lv >= 5 ? 'Maximum' : 'Level ' + lv;
-      out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].icon + ' ' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Maximum level reached') + '</small></div>' + actionButton('Upgrade', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
+      out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].icon + ' ' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Maximum level reached') + '</small></turniv>' + actionButton('Upgrade', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</turniv>';
     });
-    out += '</div>';
-    return out + '</div></div>';
+    out += '</turniv>';
+    return out + '</turniv></turniv>';
   }
 
 function renderArmy(){
  const f=player(),villages=ownTiles(0),active=game.tiles[game.selected].owner===0?game.tiles[game.selected]:villages[0];
  let out='<div class="workspace-body"><p class="section-intro">Reserve troops can raid and attack. Stationed troops defend their village. Reinforcements take turns to travel.</p>';
- out+='<div class="stat-grid"><div class="stat-card"><span>Reserve troops</span><strong>'+armyCount(f.troops)+'</strong></div>'+
-  '<div class="stat-card"><span>Total armies</span><strong>'+armyCount(totalArmy(0))+'</strong></div>'+
-  '<div class="stat-card"><span>Food upkeep / turn</span><strong>'+upkeep(0)+'</strong></div></div>';
+ out+='<div class="stat-grid"><div class="stat-card"><span>Reserve troops</span><strong>'+armyCount(f.troops)+'</strong></turniv>'+
+  '<div class="stat-card"><span>Total armies</span><strong>'+armyCount(totalArmy(0))+'</strong></turniv>'+
+  '<div class="stat-card"><span>Food upkeep / turn</span><strong>'+upkeep(0)+'</strong></turniv></turniv>';
  out+='<h3 class="subheading">Recruit to reserve</h3><div class="unit-list">';
  const barracks=Math.max(...villages.map(t=>t.levels.barracks),0);
  Object.keys(UNITS).forEach(k=>{
    const u=UNITS[k],cost=Object.fromEntries(RES.map(r=>[r.key,u.cost[r.key]*5]));
    out+='<div class="entry"><div><strong>'+u.icon+' '+u.label+' · '+f.troops[k]+' reserve</strong><small>'+
      'Attack '+u.attack+' · Defense '+u.defense+' · Barracks Lv. '+u.unlock+'<br>5 units: '+costText(cost)+
-     '</small></div>'+actionButton('Recruit 5','train','data-unit="'+k+'"','small',barracks<u.unlock||!canAfford(0,cost))+'</div>';
+     '</small></turniv>'+actionButton('Recruit 5','train','data-unit="'+k+'"','small',barracks<u.unlock||!canAfford(0,cost))+'</turniv>';
  });
- out+='</div>';
+ out+='</turniv>';
  if(active){
   out+='<h3 class="subheading">🛡️ Garrison — '+active.name+'</h3><p class="section-intro">Station reserves to defend. Withdraw troops to use them in field operations.</p><div class="unit-list">';
   Object.keys(UNITS).forEach(k=>{
-    out+='<div class="entry"><div><strong>'+UNITS[k].icon+' '+UNITS[k].label+'</strong><small>Stationed: '+active.garrison[k]+' · Reserve: '+f.troops[k]+'</small></div><div class="entry-actions">'+
+    out+='<div class="entry"><div><strong>'+UNITS[k].icon+' '+UNITS[k].label+'</strong><small>Stationed: '+active.garrison[k]+' · Reserve: '+f.troops[k]+'</small></turniv><div class="entry-actions">'+
        actionButton('Station 5','station','data-unit="'+k+'" data-tile="'+active.id+'"','small',f.troops[k]===0)+
-       actionButton('Withdraw 5','withdraw','data-unit="'+k+'" data-tile="'+active.id+'"','small',active.garrison[k]===0)+'</div></div>';
+       actionButton('Withdraw 5','withdraw','data-unit="'+k+'" data-tile="'+active.id+'"','small',active.garrison[k]===0)+'</turniv></turniv>';
   });
-  out+='</div><div class="action-group">'+actionButton('🏰 Fortify','fortify','data-tile="'+active.id+'"','small',active.fortifyUntil>game.day||!canAfford(0,{wood:45,clay:40,iron:25,grain:20}))+
-    actionButton('🏃 Evacuate','evacuate','data-tile="'+active.id+'"','small subtle',!canAfford(0,{grain:20}))+'</div>';
+  out+='</turniv><div class="action-group">'+actionButton('🏰 Fortify','fortify','data-tile="'+active.id+'"','small',active.fortifyUntil>game.day||!canAfford(0,{wood:45,clay:40,iron:25,grain:20}))+
+    actionButton('🏃 Evacuate','evacuate','data-tile="'+active.id+'"','small subtle',!canAfford(0,{grain:20}))+'</turniv>';
   if(villages.length>1){
    out+='<h3 class="subheading">Send reinforcements (50% of garrison)</h3><div class="action-group">';
    villages.filter(v=>v.id!==active.id).forEach(v=>out+=actionButton('🛡️ '+v.name,'reinforce',
      'data-from="'+active.id+'" data-to="'+v.id+'"','small',!armyCount(active.garrison)));
-   out+='</div>';
+   out+='</turniv>';
   }
  }
  const farmLedger=game.reports.filter(r=>r.attacker===0&&r.mode==='raid').slice(0,12);
@@ -828,17 +828,17 @@ function renderArmy(){
    out+='<h3 class="subheading">💰 Raid profitability (last 12)</h3><div class="unit-list">';
    farmLedger.forEach(r=>{
      const net=sumResources(r.loot)-replacementCost(r.attackers.lost);
-     out+='<div class="entry"><div><strong>'+game.tiles[r.tile].name+'</strong><small>Turn '+r.day+' · Loot '+sumResources(r.loot)+' · Loss costs '+replacementCost(r.attackers.lost)+'</small></div><span class="pill '+(net>=0?'pact':'war')+'">'+(net>=0?'+':'')+net+'</span></div>';
+     out+='<div class="entry"><div><strong>'+game.tiles[r.tile].name+'</strong><small>Turn '+r.day+' · Loot '+sumResources(r.loot)+' · Loss costs '+replacementCost(r.attackers.lost)+'</small></turniv><span class="pill '+(net>=0?'pact':'war')+'">'+(net>=0?'+':'')+net+'</span></turniv>';
    });
-   out+='</div>';
+   out+='</turniv>';
  }
  out+='<h3 class="subheading">Troops in motion</h3><div class="mission-list">';
  const moving=game.missions.filter(m=>m.owner===0||(!m.returnTrip&&game.tiles[m.tile].owner===0));
  if(!moving.length)out+='<p class="muted-note">No marching armies. Select a target on the map or send reinforcements.</p>';
  moving.forEach(m=>out+='<div class="entry"><div><strong>'+((m.owner===0)?'⚔️ Outgoing':'🚨 Incoming')+' '+m.mode+' · '+game.tiles[m.tile].name+
    '</strong><small>'+(m.returnTrip?'Returning':'Arriving')+' in '+m.eta+' turn(s) · '+(m.troops?armyCount(m.troops)+' units':'Settlers')+
-   '</small></div></div>');
- return out+'</div></div>';
+   '</small></turniv></turniv>');
+ return out+'</turniv></turniv>';
 }
 
   function stanceName(stance) { return { neutral: 'Neutral', pact: 'Non-aggression pact', alliance: 'Alliance', war: 'At war' }[stance] || stance; }
@@ -846,25 +846,25 @@ function renderArmy(){
     let out = '<div class="workspace-body"><p class="section-intro">Alliances help protect your borders and allow support. Gifts improve relations, but strong rivals can still threaten you.</p><div class="diplomacy-list">';
     game.factions.slice(1).forEach(function (f) {
       const r = relation(0, f.id);
-      out += '<div class="entry"><div><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong> <span class="pill ' + (r.stance === 'war' ? 'war' : r.stance === 'neutral' ? 'neutral' : 'pact') + '">' + stanceName(r.stance) + '</span><small>Opinion ' + r.opinion + ' · ' + ownTiles(f.id).length + ' villages · Power ' + format(armyPower(f.troops)) + '<br>Personality: ' + ({ aggressive: 'Aggressive', economic: 'Economic', diplomatic: 'Diplomatic', opportunist: 'Opportunist', defensive: 'Defensive' }[f.style]) + '</small></div><div class="entry-actions">';
+      out += '<div class="entry"><div><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong> <span class="pill ' + (r.stance === 'war' ? 'war' : r.stance === 'neutral' ? 'neutral' : 'pact') + '">' + stanceName(r.stance) + '</span><small>Opinion ' + r.opinion + ' · ' + ownTiles(f.id).length + ' villages · Power ' + format(armyPower(f.troops)) + '<br>Personality: ' + ({ aggressive: 'Aggressive', economic: 'Economic', diplomatic: 'Diplomatic', opportunist: 'Opportunist', defensive: 'Defensive' }[f.style]) + '</small></turniv><div class="entry-actions">';
       out += actionButton('Gift', 'gift', 'data-faction="' + f.id + '"', 'small', !canAfford(0, { wood: 70, grain: 70 }) || r.stance === 'war');
       if (r.stance === 'neutral') out += actionButton('Offer pact', 'pact', 'data-faction="' + f.id + '"', 'small');
       if (r.stance === 'pact') out += actionButton('Offer alliance', 'alliance', 'data-faction="' + f.id + '"', 'small');
       if (r.stance === 'alliance') out += actionButton('Request aid', 'aid', 'data-faction="' + f.id + '"', 'small');
       if (r.stance === 'war') out += actionButton('Offer peace', 'peace', 'data-faction="' + f.id + '"', 'small');
       else out += actionButton(r.stance === 'neutral' ? 'Declare war' : 'Romper acordo', r.stance === 'neutral' ? 'war' : 'break', 'data-faction="' + f.id + '"', 'small danger');
-      out += '</div></div>';
+      out += '</turniv></turniv>';
     });
-    return out + '</div></div>';
+    return out + '</turniv></turniv>';
   }
   function renderRanking() {
-    let out = '<div class="workspace-body"><p class="section-intro">Dynamic rankings reward villages, population, military strength, resources and strategic passes. Lead the table with at least 10 villages for four turns to win.</p><div class="rank-list"><div class="rank-row heading"><span>#</span><span>Império</span><span class="num">Villages</span><span class="num">Pontos</span></div>';
+    let out = '<div class="workspace-body"><p class="section-intro">Dynamic rankings reward villages, population, military strength, resources and strategic passes. Lead the table with at least 10 villages for four turns to win.</p><div class="rank-list"><div class="rank-row heading"><span>#</span><span>Império</span><span class="num">Villages</span><span class="num">Pontos</span></turniv>';
     ranking().forEach(function (f, i) {
-      out += '<div class="rank-row' + (f.id === 0 ? ' player' : '') + '"><strong>' + (i + 1) + '</strong><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong><span class="num">' + ownTiles(f.id).length + '</span><strong class="num">' + format(score(f.id)) + '</strong></div>';
+      out += '<div class="rank-row' + (f.id === 0 ? ' player' : '') + '"><strong>' + (i + 1) + '</strong><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong><span class="num">' + ownTiles(f.id).length + '</span><strong class="num">' + format(score(f.id)) + '</strong></turniv>';
     });
     const leader = ranking()[0];
-    out += '</div><h3 class="subheading">Corrida pela coroa</h3><p class="muted-note">' + leader.name + ' lidera o ranking com ' + ownTiles(leader.id).length + ' villages. Dominance held: ' + (game.dominance[leader.id] || 0) + '/4 turns. You need 10 villages to begin this countdown.</p>';
-    return out + '</div>';
+    out += '</turniv><h3 class="subheading">Corrida pela coroa</h3><p class="muted-note">' + leader.name + ' lidera o ranking com ' + ownTiles(leader.id).length + ' villages. Dominance held: ' + (game.dominance[leader.id] || 0) + '/4 turns. You need 10 villages to begin this countdown.</p>';
+    return out + '</turniv>';
   }
   function reportUnits(units) {
     return Object.keys(UNITS).map(function (k) {
@@ -873,10 +873,10 @@ function renderArmy(){
   }
   function battleSide(title, values) {
     return '<div class="battle-side"><h4>' + title + '</h4><div class="battle-columns">' +
-      '<div><small>Committed</small><div class="battle-units">' + reportUnits(values.sent) + '</div></div>' +
-      '<div><small>Lost</small><div class="battle-units lost">' + reportUnits(values.lost) + '</div></div>' +
-      '<div><small>Survivors</small><div class="battle-units">' + reportUnits(values.survived) + '</div></div>' +
-      '</div></div>';
+      '<div><small>Committed</small><div class="battle-units">' + reportUnits(values.sent) + '</turniv></turniv>' +
+      '<div><small>Lost</small><div class="battle-units lost">' + reportUnits(values.lost) + '</turniv></turniv>' +
+      '<div><small>Survivors</small><div class="battle-units">' + reportUnits(values.survived) + '</turniv></turniv>' +
+      '</turniv></turniv>';
   }
   function replacementCost(lost) {
     return Object.keys(UNITS).reduce(function(total,k){
@@ -885,7 +885,7 @@ function renderArmy(){
   }
   function renderReports() {
     let out = '<div class="workspace-body"><p class="section-intro">📜 Your offensive and defensive battles: forces committed, survivors, losses, plunder and terrain effects.</p>';
-    if (!game.reports.length) return out + '<p class="muted-note">No battles yet. Raid a nearby site or prepare to defend against enemy attacks.</p></div>';
+    if (!game.reports.length) return out + '<p class="muted-note">No battles yet. Raid a nearby site or prepare to defend against enemy attacks.</p></turniv>';
     game.reports.forEach(function (r) {
       const defending = r.defender === 0;
       const success = defending ? !r.victory : r.victory;
@@ -894,28 +894,28 @@ function renderArmy(){
       const attacker = game.factions[r.attacker].name;
       const defender = r.defender < 0 ? 'Neutral militia' : game.factions[r.defender].name;
       out += '<article id="battle-report-' + r.id + '" class="battle-report ' + (success ? 'battle-win' : 'battle-loss') + '">';
-      out += '<div class="battle-header"><div><span class="battle-type">' + side + ' · TURN ' + r.day + '</span><h3>' + game.tiles[r.tile].name + ' <span class="pill ' + (success ? 'pact' : 'war') + '">' + (r.conquered ? '🏰 Conquista' : status) + '</span></h3></div><span class="battle-direction">' + (defending ? '🛡️ Recebido' : '⚔️ Enviado') + '</span></div>';
+      out += '<div class="battle-header"><div><span class="battle-type">' + side + ' · TURN ' + r.day + '</span><h3>' + game.tiles[r.tile].name + ' <span class="pill ' + (success ? 'pact' : 'war') + '">' + (r.conquered ? '🏰 Conquista' : status) + '</span></h3></turniv><span class="battle-direction">' + (defending ? '🛡️ Recebido' : '⚔️ Enviado') + '</span></turniv>';
       out += '<p class="battle-summary">' + attacker + ' ⚔️ ' + defender + ' · ' + (r.mode === 'conquer' ? 'Siege attempt' : 'Raid') + '</p>';
       out += battleSide('⚔️ Attacking army — ' + attacker, r.attackers);
       out += battleSide('🛡️ Defending army — ' + defender, r.defenders);
-      if (r.militia.sent) out += '<div class="militia-row">🛡️ Local militia · Committed: <strong>' + r.militia.sent + '</strong> · Killed: <strong>' + r.militia.lost + '</strong> · Survivors: <strong>' + r.militia.survived + '</strong></div>';
+      if (r.militia.sent) out += '<div class="militia-row">🛡️ Local militia · Committed: <strong>' + r.militia.sent + '</strong> · Killed: <strong>' + r.militia.lost + '</strong> · Survivors: <strong>' + r.militia.survived + '</strong></turniv>';
       const total = RES.reduce(function (n, x) { return n + (r.loot[x.key] || 0); }, 0);
-      out += '<div class="militia-row">'+(r.mode==='raid'?'💰 Raid':r.mode==='siege'?'🏰 Siege':'🗡️ Field attack')+' · '+(r.terrain?TERRAIN[r.terrain].label:'Unknown terrain')+' · Supply '+Math.round((r.supply||1)*100)+'% · Carry capacity '+(r.carryCapacity||0)+'</div>';
+      out += '<div class="militia-row">'+(r.mode==='raid'?'💰 Raid':r.mode==='siege'?'🏰 Siege':'🗡️ Field attack')+' · '+(r.terrain?TERRAIN[r.terrain].label:'Unknown terrain')+' · Supply '+Math.round((r.supply||1)*100)+'% · Carry capacity '+(r.carryCapacity||0)+'</turniv>';
       const net=sumResources(r.loot)-replacementCost(r.attackers.lost);
-      out += '<div class="militia-row">💰 Loot value: '+sumResources(r.loot)+' · Attacker losses: '+replacementCost(r.attackers.lost)+' · Net raid result: '+(net>=0?'+':'')+net+'</div>';
+      out += '<div class="militia-row">💰 Loot value: '+sumResources(r.loot)+' · Attacker losses: '+replacementCost(r.attackers.lost)+' · Net raid result: '+(net>=0?'+':'')+net+'</turniv>';
       out += '<div class="loot-row"><strong>' + (total ? '💰 Resources looted' : '📦 Resources looted: none') + '</strong>' +
-        (total ? '<span>' + costText(r.loot) + '</span><small>' + (defending ? 'Taken from your treasury by the raiders.' : 'Carried by surviving raiders; delivered when they return.') + '</small>' : '') + '</div>';
+        (total ? '<span>' + costText(r.loot) + '</span><small>' + (defending ? 'Taken from your treasury by the raiders.' : 'Carried by surviving raiders; delivered when they return.') + '</small>' : '') + '</turniv>';
       out += '</article>';
     });
-    return out + '</div>';
+    return out + '</turniv>';
   }
   function markReportsRead() {
     game.reports.forEach(function (r) { r.read = true; });
   }
   function renderChronicle() {
     return '<div class="workspace-body"><p class="section-intro">Rival kingdoms grow, negotiate and fight. Each entry reflects a simulated event.</p><div class="chronicle-list">' + game.logs.map(function (l) {
-      return '<div class="chronicle-row"><strong class="chronicle-day">TURN ' + l.day + '</strong><div><strong>' + l.title + '</strong><p>' + l.detail + '</p></div></div>';
-    }).join('') + '</div></div>';
+      return '<div class="chronicle-row"><strong class="chronicle-day">TURN ' + l.day + '</strong><div><strong>' + l.title + '</strong><p>' + l.detail + '</p></turniv></turniv>';
+    }).join('') + '</turniv></turniv>';
   }
   function renderVillageList() {
     const villages = ownTiles(0);
@@ -942,7 +942,7 @@ function renderArmy(){
     const icons = { wood:'🌲',clay:'🧱',iron:'⛏️',grain:'🌾',barracks:'⚔️',wall:'🏰',market:'⚖️' };
     const short = {wood:'Wood',clay:'Clay',iron:'Iron',grain:'Grain',barracks:'Barracks',wall:'Palisade',market:'Market'};
     let out = '<div class="scene-ring ' + (isTown ? 'infrastructure' : 'production') + '">';
-    out += '<div class="scene-heart"><span class="house">' + (isTown ? '🏛️' : '🏡') + '</span><strong>' + active.name + '</strong><small>' + (isTown ? 'Town center' : 'Fields and production') + '</small></div>';
+    out += '<div class="scene-heart"><span class="house">' + (isTown ? '🏛️' : '🏡') + '</span><strong>' + active.name + '</strong><small>' + (isTown ? 'Town center' : 'Fields and production') + '</small></turniv>';
     positions.forEach(function (p) {
       const lv = active.levels[p.key];
       const building = active.construction && active.construction.key === p.key;
@@ -951,7 +951,7 @@ function renderArmy(){
       if (building) out += '<span class="slot-queue">Em obras · ' + active.construction.left + 'd</span>';
       out += '</button>';
     });
-    out += '</div><div class="scene-note">Select a building to see upgrade costs ↓</div>';
+    out += '</turniv><div class="scene-note">Select a building to see upgrade costs ↓</turniv>';
     $('scene-ground').innerHTML = out;
   }
   function renderWorkspace() {
@@ -972,7 +972,7 @@ function renderArmy(){
       const symbol = l.tone === 'incoming' ? '🚨' : l.tone === 'outgoing' ? '⚔️' : l.tone === 'war' ? '🛡️' : '✦';
       return '<div class="dispatch-item"><span class="dispatch-bullet">' + symbol + '</span><div><span class="dispatch-time">TURN ' + l.day + '</span><strong>' + l.title + '</strong><p>' + l.detail + '</p>' +
         (l.reportId ? actionButton('📜 View report →', 'view-report', 'data-report-id="' + l.reportId + '"', 'small subtle') : '') +
-        '</div></div>';
+        '</turniv></turniv>';
     }).join('');
   }
   function renderEvent() {
@@ -981,13 +981,13 @@ function renderArmy(){
       if (game.endSummaryDismissed) { node.classList.add('hidden'); node.innerHTML = ''; return; }
       const victor = game.ended.winner >= 0 ? game.factions[game.ended.winner].name : 'Os reinos rivais';
       node.classList.remove('hidden');
-      node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Campaign over"><p class="eyebrow">THE FINAL CHRONICLE</p><h2>' + (game.ended.winner === 0 ? 'Your crown awaits' : 'The empire has fallen') + '</h2><p>' + victor + ' venceu a campanha. ' + (game.ended.winner === 0 ? 'You earned the right to rule the continent.' : 'The kingdoms changed the map through conflict.') + ' The world reached its conclusion on turn ' + game.day + '.</p><div class="event-actions">' + actionButton('📜 View reports', 'review-end', '', 'subtle') + actionButton('Start new campaign', 'restart', '', 'primary') + '</div></div>';
+      node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Campaign over"><p class="eyebrow">THE FINAL CHRONICLE</p><h2>' + (game.ended.winner === 0 ? 'Your crown awaits' : 'The empire has fallen') + '</h2><p>' + victor + ' venceu a campanha. ' + (game.ended.winner === 0 ? 'You earned the right to rule the continent.' : 'The kingdoms changed the map through conflict.') + ' The world reached its conclusion on turn ' + game.day + '.</p><div class="event-actions">' + actionButton('📜 View reports', 'review-end', '', 'subtle') + actionButton('Start new campaign', 'restart', '', 'primary') + '</turniv></turniv>';
       return;
     }
     if (!game.event) { node.classList.add('hidden'); node.innerHTML = ''; return; }
     const rival = game.factions[game.event.faction];
     node.classList.remove('hidden');
-    node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Diplomatic ultimatum"><p class="eyebrow">A MESSENGER AT THE GATES</p><h2>Peace has a price</h2><p>An envoy of <strong>' + rival.name + '</strong> reached your court. They demand 70 wood and 70 grain for peace. Refusal may trigger war.</p><div class="event-actions">' + actionButton('Pay tribute', 'event-pay', '', 'primary', !canAfford(0, {wood:70,grain:70})) + actionButton('Reject demand', 'event-refuse', '', 'danger') + '</div></div>';
+    node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Diplomatic ultimatum"><p class="eyebrow">A MESSENGER AT THE GATES</p><h2>Peace has a price</h2><p>An envoy of <strong>' + rival.name + '</strong> reached your court. They demand 70 wood and 70 grain for peace. Refusal may trigger war.</p><div class="event-actions">' + actionButton('Pay tribute', 'event-pay', '', 'primary', !canAfford(0, {wood:70,grain:70})) + actionButton('Reject demand', 'event-refuse', '', 'danger') + '</turniv></turniv>';
   }
   function renderGuidance() {
     const capital = game.tiles[19];
@@ -996,7 +996,7 @@ function renderArmy(){
     const settled = ownTiles(0).length > 1 || game.missions.some(function (m) { return m.owner === 0 && m.mode === 'settle'; });
     let title, detail, label, action;
     if (game.ended) {
-      title = 'Campaign over'; detail = 'Review the outcome and start another campaign when ready.'; label = 'View rankings'; action = 'open-ranking';
+      title = 'Campaign over'; detail = 'Review the outcome and start yearther campaign when ready.'; label = 'View rankings'; action = 'open-ranking';
     } else if (!built) {
       title = '1. Grow your village';
       detail = 'Upgrade a resource field, then end a couple of turns to complete construction.';
@@ -1014,7 +1014,7 @@ function renderArmy(){
       detail = 'Build, defend, raid and negotiate. End the turn whenever you are ready.';
       label = 'View rankings'; action = 'open-ranking';
     }
-    $('guidance').innerHTML = '<div class="guidance-copy"><p class="eyebrow">YOUR NEXT MOVE</p><strong>' + title + '</strong><p>' + detail + '</p></div><div class="guidance-actions">' + actionButton(label + ' ↗', action, '', 'subtle small') + '</div>';
+    $('guidance').innerHTML = '<div class="guidance-copy"><p class="eyebrow">YOUR NEXT MOVE</p><strong>' + title + '</strong><p>' + detail + '</p></turniv><div class="guidance-actions">' + actionButton(label + ' ↗', action, '', 'subtle small') + '</turniv>';
   }
   function focusWorkspace() {
     const node = typeof document.querySelector === 'function' ? document.querySelector('.workspace') : null;
@@ -1057,7 +1057,7 @@ function renderArmy(){
     $('mobile-turn-label').textContent = 'Turn ' + game.day;
     $('mobile-next-turn').title = game.event ? 'Resolve the event before ending the turn' : game.ended ? 'Campaign over' : 'End turn ' + game.day;
     $('mobile-next-turn').setAttribute('aria-label', game.event ? 'Resolve the event before ending the turn' : game.ended ? 'Campaign over' : 'End turn ' + game.day + ' and advance to the next');
-    $('empire-mini').innerHTML = '<span class="tiny-label">YOUR EMPIRE</span><div class="mini-stat"><span>Villages</span><strong>' + ownTiles(0).length + '</strong></div><div class="mini-stat"><span>Population</span><strong>' + format(population(0)) + '</strong></div><div class="mini-stat"><span>Position</span><strong>#' + (ranking().findIndex(function (f) { return f.id === 0; }) + 1) + '</strong></div><div class="mini-stat"><span>Missions</span><strong>' + game.missions.filter(function (m) { return m.owner === 0; }).length + '</strong></div>';
+    $('empire-mini').innerHTML = '<span class="tiny-label">YOUR EMPIRE</span><div class="mini-stat"><span>Villages</span><strong>' + ownTiles(0).length + '</strong></turniv><div class="mini-stat"><span>Population</span><strong>' + format(population(0)) + '</strong></turniv><div class="mini-stat"><span>Position</span><strong>#' + (ranking().findIndex(function (f) { return f.id === 0; }) + 1) + '</strong></turniv><div class="mini-stat"><span>Missions</span><strong>' + game.missions.filter(function (m) { return m.owner === 0; }).length + '</strong></turniv>';
   }
 
   function diplomacyAction(action, id) {
