@@ -698,6 +698,7 @@
     if (btn.id === 'time-pause') { game.speed = 0; accumulated = 0; refresh(); }
     if (btn.id === 'next-day') { advanceDay(); }
     if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); }
+    if (btn.id === 'back-to-map') { const map = typeof document.querySelector === 'function' ? document.querySelector('.map-panel') : null; if (map && typeof map.scrollIntoView === 'function') map.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     if (btn.id === 'new-game') {
       if (window.confirm('Iniciar uma nova campanha? O progresso guardado será substituído.')) { createGame(); refresh(); }
     }
