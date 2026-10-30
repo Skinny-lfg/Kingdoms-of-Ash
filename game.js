@@ -3,6 +3,7 @@
 
   const SAVE_KEY = 'kingdoms-of-ash-v04';
   const LEGACY_SAVE_KEY = 'kingdoms-of-ash-v03';
+  const PAGES_V03_SAVE_KEY = 'kingdoms-of-ash-v03-pages';
   const FIRST_SAVE_KEY = 'kingdoms-of-ash-v01';
   const VERSION = 2;
   const OWNER = 'Skinny-lfg/Kingdoms-of-Ash';
@@ -169,7 +170,7 @@
   }
   function load() {
     try {
-      const data = JSON.parse(localStorage.getItem(SAVE_KEY) || localStorage.getItem(LEGACY_SAVE_KEY) || localStorage.getItem(FIRST_SAVE_KEY) || 'null');
+      const data = JSON.parse(localStorage.getItem(SAVE_KEY) || localStorage.getItem(PAGES_V03_SAVE_KEY) || localStorage.getItem(LEGACY_SAVE_KEY) || localStorage.getItem(FIRST_SAVE_KEY) || 'null');
       if (data && (data.version === 1 || data.version === VERSION) && Array.isArray(data.tiles) && data.tiles.length === 40 && Array.isArray(data.factions) && data.factions.length === 6) {
         game = data;
         game.version = VERSION;
@@ -841,10 +842,11 @@
     if (game.ended && !['open-ranking','open-reports','view-report'].includes(action)) return;
     let scrollTo = '';
     let focusReportId = 0;
-    if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'workspace'; }
-    else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; }
-    else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); scrollTo = 'workspace'; }
-    else if (action === 'open-infrastructure') { navigateTo('village', 'infrastructure', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); scrollTo = 'workspace'; }
+    if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'scene'; }
+    else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; game.buildingFocus = game.villageMode === 'production' ? 'wood' : 'barracks'; scrollTo = 'scene'; }
+    else if (action === 'focus-building') { if (BUILDINGS[btn.dataset.key]) { game.buildingFocus = btn.dataset.key; scrollTo = 'workspace'; } }
+    else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'wood'; scrollTo = 'scene'; }
+    else if (action === 'open-infrastructure') { navigateTo('village', 'infrastructure', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'barracks'; scrollTo = 'scene'; }
     else if (action === 'open-army') { navigateTo('army'); scrollTo = 'workspace'; }
     else if (action === 'open-diplomacy') { navigateTo('diplomacy'); scrollTo = 'workspace'; }
     else if (action === 'open-ranking') { navigateTo('ranking'); scrollTo = 'workspace'; }
@@ -854,7 +856,7 @@
     }
     else if (action === 'guide-expand') {
       const t = nearestFree(0);
-      if (t) { game.selected = t.id; scrollTo = 'selection'; }
+      if (t) { game.selected = t.id; game.tab = 'map'; scrollTo = 'selection'; }
       else { notice('Não existe terreno neutro próximo. Explora outras fronteiras ou conquista uma aldeia.', true); }
     }
     else if (action === 'build') {
@@ -880,6 +882,7 @@
     refresh();
     if (scrollTo === 'workspace') focusWorkspace();
     if (scrollTo === 'selection') focusSelection();
+    if (scrollTo === 'scene') focusActiveView();
     if (focusReportId) {
       const entry = $('battle-report-' + focusReportId);
       if (entry && typeof entry.scrollIntoView === 'function') entry.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -887,15 +890,42 @@
   }
   document.addEventListener('click', function (ev) {
     const btn = ev.target.closest('button'); if (!btn || btn.disabled) return;
-    if (btn.dataset.tile !== undefined && !btn.dataset.action) { game.selected = Number(btn.dataset.tile); refresh(); focusSelection(); return; }
-    if (btn.dataset.tab) { game.tab = btn.dataset.tab; if (game.tab === 'reports') markReportsRead(); refresh(); focusWorkspace(); return; }
-    if (btn.dataset.action) { handleAction(btn); return; }
-    if (btn.id === 'next-day') { advanceDay(); }
-    if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); }
-    if (btn.id === 'back-to-map') { const map = typeof document.querySelector === 'function' ? document.querySelector('.map-panel') : null; if (map && typeof map.scrollIntoView === 'function') map.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
-    if (btn.id === 'new-game') {
-      if (window.confirm('Iniciar uma nova campanha? O progresso guardado será substituído.')) { createGame(); refresh(); }
+    if (btn.id === 'mobile-more-toggle') { updateMobileMenu(!mobileMenuOpen); return; }
+    if (btn.dataset.tile !== undefined && !btn.dataset.action) {
+      game.selected = Number(btn.dataset.tile);
+      game.tab = 'map';
+      refresh(); focusSelection(); return;
     }
+    if (btn.dataset.tab) {
+      updateMobileMenu(false);
+      game.tab = btn.dataset.tab;
+      if (game.tab === 'village') {
+        game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production';
+        game.buildingFocus = game.villageMode === 'production' ? 'wood' : 'barracks';
+        if (game.tiles[game.selected].owner !== 0 && ownTiles(0).length) game.selected = ownTiles(0)[0].id;
+      }
+      if (game.tab === 'reports') markReportsRead();
+      refresh();
+      if (typeof window.innerWidth === 'number' && window.innerWidth <= 800) focusActiveView();
+      else if (game.tab !== 'map' && game.tab !== 'village') focusWorkspace();
+      return;
+    }
+    if (btn.dataset.action) { handleAction(btn); return; }
+    if (btn.id === 'next-day') { advanceDay(); return; }
+    if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); return; }
+    if (btn.id === 'back-to-map') { game.tab = 'map'; refresh(); focusActiveView(); return; }
+    if (btn.id === 'new-game') {
+      if (window.confirm('Iniciar uma nova campanha? O progresso guardado será substituído.')) {
+        createGame(); refresh(); focusActiveView();
+      }
+    }
+  });
+  document.addEventListener('change', function (ev) {
+    if (ev.target.id !== 'mobile-village-select') return;
+    const id = Number(ev.target.value);
+    if (!game.tiles[id] || game.tiles[id].owner !== 0) return;
+    game.selected = id; game.tab = 'village';
+    updateMobileMenu(false); refresh(); focusActiveView();
   });
   document.addEventListener('input', function (ev) {
     if (ev.target.id !== 'force-slider') return;
