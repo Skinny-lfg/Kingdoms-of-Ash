@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#111820">
-  <meta name="description" content="Kingdoms of Ash — um jogo de estratégia single-player com economia, conquista, diplomacia e rivais simulados.">
-  <title>Kingdoms of Ash — The Ashen Continent</title>
+  <meta name="theme-color" content="#333d2e">
+  <meta name="description" content="Kingdoms of Ash, estratégia single-player de economia, conquista e diplomacia.">
+  <title>Kingdoms of Ash — O Teu Reino</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./travian-layout.css">
   <script src="./game.js" defer></script>
 </head>
 <body>
@@ -14,85 +15,88 @@
     <header class="masthead">
       <div class="brand">
         <div class="crest" aria-hidden="true">♜</div>
-        <div><p class="eyebrow">THE ASHEN CONTINENT</p><h1>KINGDOMS <span>OF ASH</span></h1></div>
+        <div><p class="eyebrow">UM CONTINENTE POR CONQUISTAR</p><h1>KINGDOMS <span>OF ASH</span></h1></div>
       </div>
       <div class="campaign-status">
-        <span class="tiny-label">A CRÓNICA</span>
+        <span class="tiny-label">CAMPANHA SINGLE-PLAYER</span>
         <strong id="day-label">Dia 1</strong>
         <span id="phase-label" class="muted">A era dos pequenos reinos</span>
       </div>
       <div class="time-controls" aria-label="Controlo do tempo">
-        <button id="time-pause" class="speed active" type="button" aria-label="Pausar">Ⅱ</button>
+        <button id="time-pause" class="speed active" type="button" aria-label="Pausar o jogo">Ⅱ</button>
         <button data-speed="1" class="speed" type="button">1×</button>
         <button data-speed="5" class="speed" type="button">5×</button>
         <button data-speed="20" class="speed" type="button">20×</button>
-        <button id="next-day" class="button subtle" type="button" title="Avançar um dia">+1 dia ↗</button>
+        <button id="next-day" class="button subtle" type="button">+1 dia ↗</button>
       </div>
     </header>
 
     <section class="resource-strip" id="resources" aria-label="Recursos do império"></section>
-    <section class="guidance panel" id="guidance" aria-label="Próximo passo recomendado"></section>
+
+    <section class="navigation-strip panel">
+      <nav id="nav" class="nav" aria-label="Navegação principal">
+        <button type="button" class="nav-button active" data-tab="village" data-mode="production"><span>🌾</span><b>Recursos</b></button>
+        <button type="button" class="nav-button" data-tab="village" data-mode="infrastructure"><span>🏘️</span><b>Aldeia</b></button>
+        <button type="button" class="nav-button" data-tab="map"><span>🗺️</span><b>Mapa</b></button>
+        <button type="button" class="nav-button" data-tab="army"><span>⚔️</span><b>Tropas</b></button>
+        <button type="button" class="nav-button" data-tab="diplomacy"><span>🤝</span><b>Diplomacia</b></button>
+        <button type="button" class="nav-button" data-tab="ranking"><span>🏆</span><b>Ranking</b></button>
+        <button type="button" class="nav-button" data-tab="chronicle"><span>📜</span><b>Relatórios</b></button>
+      </nav>
+      <div class="nav-actions"><button id="new-game" type="button" class="text-button">↻ Nova campanha</button></div>
+    </section>
 
     <div class="game-layout">
-      <aside class="left-panel panel" aria-label="Navegação do jogo">
-        <div class="side-heading"><span class="tiny-label">CONSELHO REAL</span><span class="seal">✦</span></div>
-        <nav id="nav" class="nav" aria-label="Vistas do reino">
-          <button class="nav-button active" data-tab="village" type="button"><span>⌂</span> Aldeias</button>
-          <button class="nav-button" data-tab="army" type="button"><span>⚔</span> Exército</button>
-          <button class="nav-button" data-tab="diplomacy" type="button"><span>♧</span> Diplomacia</button>
-          <button class="nav-button" data-tab="ranking" type="button"><span>♛</span> Ranking</button>
-          <button class="nav-button" data-tab="chronicle" type="button"><span>≡</span> Crónicas</button>
-        </nav>
-        <div class="side-divider"></div>
-        <div id="empire-mini" class="empire-mini"></div>
-        <div class="left-footer">
-          <button id="new-game" type="button" class="text-button">↻ Nova campanha</button>
-          <p>Gravação automática neste navegador.</p>
-        </div>
-      </aside>
-
       <main class="center-area">
-        <section class="map-panel panel" aria-labelledby="map-heading">
+        <section class="village-scene panel" id="village-scene" aria-labelledby="scene-heading">
           <div class="section-header">
-            <div>
-              <p class="eyebrow">O CONTINENTE FRAGMENTADO</p>
-              <h2 id="map-heading">Mapa das Províncias</h2>
-            </div>
-            <div class="map-tools"><span class="map-map-icon">⌖</span><span>40 províncias</span></div>
+            <div><p class="eyebrow" id="scene-kicker">CAMPOS DE PRODUÇÃO</p><h2 id="scene-heading">A tua aldeia</h2></div>
+            <span class="scene-mini-hint">Seleciona um campo ou edifício</span>
+          </div>
+          <div id="scene-ground" class="scene-ground"></div>
+          <div class="scene-footnote">Os campos e edifícios representam os níveis de produção da aldeia selecionada.</div>
+        </section>
+
+        <section id="map-panel" class="map-panel panel" aria-labelledby="map-heading">
+          <div class="section-header">
+            <div><p class="eyebrow">MUNDO · 40 PROVÍNCIAS</p><h2 id="map-heading">Mapa dos reinos</h2></div>
+            <div class="map-tools"><span class="map-map-icon">⌖</span><span>Escolhe um território</span></div>
           </div>
           <div class="map-viewport">
-            <div class="map-overlay">TERRAS DE CINZA <span>✧</span> FRONTEIRA DOS REINOS</div>
+            <div class="map-overlay">O CONTINENTE DE CINZA <span>✧</span> REGIÕES EM DISPUTA</div>
             <div id="world-map" class="world-map" role="group" aria-label="Províncias do continente"></div>
           </div>
           <div class="legend" id="map-legend"></div>
         </section>
-        <section class="workspace panel" aria-labelledby="workspace-title">
+
+        <section id="workspace" class="workspace panel" aria-labelledby="workspace-title">
           <div class="section-header workspace-header">
-            <div><p class="eyebrow" id="workspace-kicker">GESTÃO DO REINO</p><h2 id="workspace-title">O teu domínio</h2></div>
-            <div class="workspace-tools"><button id="back-to-map" class="button small subtle" type="button">↑ Voltar ao mapa</button><span class="workspace-mark" aria-hidden="true">✦</span></div>
+            <div><p class="eyebrow" id="workspace-kicker">GESTÃO DO REINO</p><h2 id="workspace-title">Detalhes</h2></div>
+            <div class="workspace-tools"><button id="back-to-map" class="button small subtle" type="button">🗺️ Ver mapa</button><span class="workspace-mark" aria-hidden="true">✦</span></div>
           </div>
           <div id="workspace-content"></div>
         </section>
       </main>
 
-      <aside class="right-area">
+      <aside class="right-area" aria-label="Informações do reino">
+        <section class="panel villages-panel">
+          <div class="section-header small"><div><p class="eyebrow">O TEU DOMÍNIO</p><h2>Aldeias</h2></div><span class="seal" aria-hidden="true">♛</span></div>
+          <div id="village-list" class="village-picker"></div>
+          <div id="empire-mini" class="empire-mini"></div>
+        </section>
         <section class="panel intelligence">
-          <div class="section-header small">
-            <div><p class="eyebrow">CLICA NUMA PROVÍNCIA DO MAPA</p><h2>Território selecionado</h2></div>
-          </div>
+          <div class="section-header small"><div><p class="eyebrow">INFORMAÇÃO E AÇÕES</p><h2>Território selecionado</h2></div></div>
           <div id="selected-province"></div>
         </section>
+        <section class="guidance panel" id="guidance" aria-label="Próximo passo recomendado"></section>
         <section class="panel dispatches">
-          <div class="section-header small">
-            <div><p class="eyebrow">O MUNDO NÃO ESPERA</p><h2>Últimas notícias</h2></div>
-            <button id="view-chronicle" class="text-button" type="button">Ver tudo ↗</button>
-          </div>
+          <div class="section-header small"><div><p class="eyebrow">ACONTECIMENTOS</p><h2>Notícias do mundo</h2></div><button id="view-chronicle" class="text-button" type="button">Ver tudo ↗</button></div>
           <div id="dispatch-list" aria-live="polite"></div>
         </section>
       </aside>
     </div>
 
-    <footer class="footline"><span>KINGDOMS OF ASH · PROTÓTIPO V0.1</span><span>Um mundo que também quer vencer.</span></footer>
+    <footer class="footline"><span>KINGDOMS OF ASH · UI V0.3</span><span>Inspirado na organização clássica dos jogos de estratégia de aldeias.</span></footer>
   </div>
   <div id="event-layer" class="event-layer hidden" role="presentation"></div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>

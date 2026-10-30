@@ -135,7 +135,7 @@
   function createGame() {
     game = {
       version: VERSION, seed: 1837659, day: 1, speed: 0, selected: 19, tab: 'village',
-      force: 75, villageMode: 'production', missionSeq: 0, ended: false, event: null, lastEventDay: 0,
+      force: 75, villageMode: 'production', buildingFocus: 'wood', missionSeq: 0, ended: false, event: null, lastEventDay: 0,
       relations: {}, missions: [], dominance: {}, logs: [], factions: [], tiles: []
     };
     FACTIONS.forEach(function (spec, id) {
@@ -170,7 +170,7 @@
     try {
       const data = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
       if (data && data.version === VERSION && Array.isArray(data.tiles) && data.tiles.length === 40 && data.factions.length === 6) {
-        game = data; game.speed = 0; game.force = game.force || 75; game.villageMode = game.villageMode || 'production'; return true;
+        game = data; game.speed = 0; game.force = game.force || 75; game.villageMode = game.villageMode || 'production'; game.buildingFocus = game.buildingFocus || (game.villageMode === 'infrastructure' ? 'barracks' : 'wood'); if (!['village','map','army','diplomacy','ranking','chronicle'].includes(game.tab)) game.tab = 'village'; return true;
       }
     } catch (_) { /* guardar jogo novo */ }
     createGame(); return false;
@@ -478,23 +478,17 @@
     const villages = ownTiles(0);
     const focused = game.tiles[game.selected].owner === 0 ? game.tiles[game.selected] : villages[0];
     if (!focused) return '<div class="workspace-body"><p class="muted-note">O teu império não tem aldeias.</p></div>';
-    let out = '<div class="workspace-body"><p class="section-intro">Melhora a tua aldeia para crescer. Os recursos das aldeias são partilhados pelo império.</p>';
+    let out = '<div class="workspace-body"><p class="section-intro">Clica num campo ou edifício acima para escolher a melhoria. Cada aldeia tem uma obra de cada vez; os recursos pertencem ao tesouro do teu império.</p>';
     out += '<div class="stat-grid"><div class="stat-card"><span>Aldeias</span><strong>' + villages.length + '</strong></div><div class="stat-card"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="stat-card"><span>Produção total</span><strong>' + format(RES.reduce(function (n, r) { return n + Math.max(0, income(0)[r.key]); }, 0)) + '</strong></div></div>';
     out += '<h3 class="subheading">Aldeia ativa — ' + focused.name + '</h3>';
-    out += '<div class="village-tabs" role="group" aria-label="Tipo de construção">';
-    out += actionButton('❋ Produção', 'village-mode', 'data-mode="production" aria-pressed="' + (game.villageMode === 'production') + '"', game.villageMode === 'production' ? 'active' : 'subtle');
-    out += actionButton('⚒ Edifícios e defesa', 'village-mode', 'data-mode="infrastructure" aria-pressed="' + (game.villageMode === 'infrastructure') + '"', game.villageMode === 'infrastructure' ? 'active' : 'subtle');
-    out += '</div><div class="building-list">';
-    Object.keys(BUILDINGS).filter(function (k) { return game.villageMode === 'infrastructure' ? !['wood','clay','iron','grain'].includes(k) : ['wood','clay','iron','grain'].includes(k); }).forEach(function (k) {
+    out += '<div class="building-list">';
+    Object.keys(BUILDINGS).filter(function (k) { return game.villageMode === 'infrastructure' ? !['wood','clay','iron','grain'].includes(k) : ['wood','clay','iron','grain'].includes(k); }).sort(function (a, b) { return (a === game.buildingFocus ? -1 : b === game.buildingFocus ? 1 : 0); }).forEach(function (k) {
       const lv = focused.levels[k]; const cost = buildingCost(focused, k);
       const can = !focused.construction && lv < 5 && canAfford(0, cost);
       const status = focused.construction && focused.construction.key === k ? 'Em obras · ' + focused.construction.left + 'd' : lv >= 5 ? 'Máximo' : 'Nível ' + lv;
-      out += '<div class="entry"><div><strong>' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Nível máximo atingido') + '</small></div>' + actionButton('Melhorar', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
+      out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Nível máximo atingido') + '</small></div>' + actionButton('Melhorar', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
     });
-    out += '</div><h3 class="subheading">As tuas províncias</h3><div class="building-list">';
-    villages.forEach(function (t) {
-      out += '<div class="entry"><div><strong>' + t.name + '</strong><small>' + TERRAIN[t.terrain].label + (t.construction ? ' · ' + BUILDINGS[t.construction.key].label + ' em obras' : '') + '</small></div>' + actionButton('Selecionar', 'select', 'data-tile="' + t.id + '"', 'small', focused.id === t.id) + '</div>';
-    });
+    out += '</div>';
     return out + '</div></div>';
   }
   function renderArmy() {
@@ -542,13 +536,51 @@
       return '<div class="chronicle-row"><strong class="chronicle-day">DIA ' + l.day + '</strong><div><strong>' + l.title + '</strong><p>' + l.detail + '</p></div></div>';
     }).join('') + '</div></div>';
   }
+
+  function renderVillageList() {
+    const villages = ownTiles(0);
+    $('village-list').innerHTML = villages.length ? villages.map(function (t) {
+      return '<button type="button" data-action="select" data-tile="' + t.id + '" class="' + (game.selected === t.id ? 'active' : '') + '" aria-label="Abrir aldeia ' + t.name + '"><span>⌂ ' + t.name + '</span><small>' + (t.id === FACTIONS[0].capital ? 'Capital' : 'Aldeia') + '</small></button>';
+    }).join('') : '<p class="muted-note">Não tens aldeias.</p>';
+  }
+  function renderVillageScene() {
+    const villages = ownTiles(0);
+    const active = game.tiles[game.selected] && game.tiles[game.selected].owner === 0 ? game.tiles[game.selected] : villages[0];
+    const isTown = game.villageMode === 'infrastructure';
+    $('scene-kicker').textContent = isTown ? 'EDIFÍCIOS E DEFESA' : 'CAMPOS DE RECURSOS';
+    $('scene-heading').textContent = (isTown ? 'Centro da aldeia · ' : 'Terras de · ') + (active ? active.name : 'Reino perdido');
+    if (!active) { $('scene-ground').innerHTML = '<p class="muted-note">Não existem aldeias sob o teu domínio.</p>'; return; }
+    const positions = isTown ? [
+      {key:'barracks',x:23,y:34},{key:'wall',x:78,y:34},{key:'market',x:50,y:80}
+    ] : [
+      {key:'wood',x:21,y:28},{key:'clay',x:78,y:28},{key:'iron',x:20,y:76},{key:'grain',x:79,y:76}
+    ];
+    const icons = { wood:'🌲',clay:'🧱',iron:'⛏️',grain:'🌾',barracks:'⚔️',wall:'🏰',market:'⚖️' };
+    const short = {wood:'Madeira',clay:'Barro',iron:'Ferro',grain:'Cereais',barracks:'Quartel',wall:'Paliçada',market:'Mercado'};
+    let out = '<div class="scene-ring ' + (isTown ? 'infrastructure' : 'production') + '">';
+    out += '<div class="scene-heart"><span class="house">' + (isTown ? '🏛️' : '🏡') + '</span><strong>' + active.name + '</strong><small>' + (isTown ? 'Centro da aldeia' : 'Campos e produção') + '</small></div>';
+    positions.forEach(function (p) {
+      const lv = active.levels[p.key];
+      const building = active.construction && active.construction.key === p.key;
+      out += '<button type="button" class="scene-slot ' + (game.buildingFocus === p.key ? 'active' : '') + '" data-building="' + p.key + '" data-action="focus-building" data-key="' + p.key + '" style="--x:' + p.x + '%;--y:' + p.y + '%" aria-label="' + short[p.key] + ', nível ' + lv + ', mostrar melhoria">';
+      out += '<span class="slot-icon" aria-hidden="true">' + icons[p.key] + '</span><span class="slot-name">' + short[p.key] + '</span><span class="slot-level">Nível ' + lv + '</span>';
+      if (building) out += '<span class="slot-queue">Em obras · ' + active.construction.left + 'd</span>';
+      out += '</button>';
+    });
+    out += '</div><div class="scene-note">Clica num edifício para ver os custos de melhoria ↓</div>';
+    $('scene-ground').innerHTML = out;
+  }
   function renderWorkspace() {
-    const titles = { village: ['GESTÃO DO REINO', 'Aldeias e produção'], army: ['ESTRATÉGIA MILITAR', 'Exército e marchas'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELO CONTINENTE', 'Ranking dos impérios'], chronicle: ['HISTÓRIA EM MOVIMENTO', 'Crónicas do mundo'] };
+    const titles = { village: ['MELHORIAS DA ALDEIA', game.villageMode === 'production' ? 'Campos de produção' : 'Edifícios e defesa'], map: ['O CONTINENTE', 'Mapa das províncias'], army: ['ESTRATÉGIA MILITAR', 'Exército e marchas'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELO CONTINENTE', 'Ranking dos impérios'], chronicle: ['HISTÓRIA EM MOVIMENTO', 'Relatórios e crónicas'] };
     const item = titles[game.tab] || titles.village;
     $('workspace-kicker').textContent = item[0]; $('workspace-title').textContent = item[1];
-    const layouts = { village: renderVillage, army: renderArmy, diplomacy: renderDiplomacy, ranking: renderRanking, chronicle: renderChronicle };
-    $('workspace-content').innerHTML = layouts[game.tab]();
-    document.querySelectorAll('.nav-button').forEach(function (btn) { btn.classList.toggle('active', btn.dataset.tab === game.tab); });
+    const layouts = { village: renderVillage, map: function () { return ''; }, army: renderArmy, diplomacy: renderDiplomacy, ranking: renderRanking, chronicle: renderChronicle };
+    $('workspace-content').innerHTML = (layouts[game.tab] || renderVillage)();
+    document.querySelectorAll('.nav-button').forEach(function (btn) {
+      const selected = btn.dataset.tab === game.tab && (game.tab !== 'village' || btn.dataset.mode === game.villageMode);
+      btn.classList.toggle('active', selected);
+      if (typeof btn.setAttribute === 'function') btn.setAttribute('aria-current', selected ? 'page' : 'false');
+    });
   }
   function renderDispatches() {
     $('dispatch-list').innerHTML = game.logs.slice(0, 5).map(function (l) {
@@ -610,7 +642,10 @@
     if (typeof target === 'number') game.selected = target;
   }
   function render() {
-    resBar(); renderGuidance(); renderMap(); renderSelected(); renderWorkspace(); renderDispatches(); renderEvent();
+    resBar(); renderGuidance(); renderMap(); renderSelected(); renderVillageList(); renderVillageScene(); renderWorkspace(); renderDispatches(); renderEvent();
+    $('village-scene').classList.toggle('hidden-pane', game.tab !== 'village');
+    $('map-panel').classList.toggle('hidden-pane', game.tab !== 'map');
+    $('workspace').classList.toggle('hidden-pane', game.tab === 'map');
     $('day-label').textContent = 'Dia ' + game.day;
     $('phase-label').textContent = game.day < 20 ? 'A era dos pequenos reinos' : game.day < 60 ? 'A era das conquistas' : 'A disputa pela coroa';
     document.querySelectorAll('[data-speed]').forEach(function (b) { b.classList.toggle('active', Number(b.dataset.speed) === game.speed); });
@@ -654,15 +689,16 @@
     if (game.ended && action !== 'open-ranking') return;
     let scrollTo = '';
     if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'workspace'; }
-    else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; }
-    else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); scrollTo = 'workspace'; }
-    else if (action === 'open-infrastructure') { navigateTo('village', 'infrastructure', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); scrollTo = 'workspace'; }
+    else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; game.buildingFocus = game.villageMode === 'production' ? 'wood' : 'barracks'; }
+    else if (action === 'focus-building') { if (BUILDINGS[btn.dataset.key]) { game.buildingFocus = btn.dataset.key; scrollTo = 'workspace'; } }
+    else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'wood'; scrollTo = 'workspace'; }
+    else if (action === 'open-infrastructure') { navigateTo('village', 'infrastructure', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'barracks'; scrollTo = 'workspace'; }
     else if (action === 'open-army') { navigateTo('army'); scrollTo = 'workspace'; }
     else if (action === 'open-diplomacy') { navigateTo('diplomacy'); scrollTo = 'workspace'; }
     else if (action === 'open-ranking') { navigateTo('ranking'); scrollTo = 'workspace'; }
     else if (action === 'guide-expand') {
       const t = nearestFree(0);
-      if (t) { game.selected = t.id; scrollTo = 'selection'; }
+      if (t) { game.selected = t.id; game.tab = 'map'; scrollTo = 'selection'; }
       else { notice('Não existe terreno neutro próximo. Explora outras fronteiras ou conquista uma aldeia.', true); }
     }
     else if (action === 'build') {
@@ -692,13 +728,23 @@
   document.addEventListener('click', function (ev) {
     const btn = ev.target.closest('button'); if (!btn || btn.disabled) return;
     if (btn.dataset.tile !== undefined && !btn.dataset.action) { game.selected = Number(btn.dataset.tile); refresh(); focusSelection(); return; }
-    if (btn.dataset.tab) { game.tab = btn.dataset.tab; refresh(); focusWorkspace(); return; }
+    if (btn.dataset.tab) {
+      game.tab = btn.dataset.tab;
+      if (game.tab === 'village') {
+        game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production';
+        game.buildingFocus = game.villageMode === 'production' ? 'wood' : 'barracks';
+        if (game.tiles[game.selected].owner !== 0 && ownTiles(0).length) game.selected = ownTiles(0)[0].id;
+      }
+      refresh();
+      if (game.tab !== 'map' && game.tab !== 'village') focusWorkspace();
+      return;
+    }
     if (btn.dataset.action) { handleAction(btn); return; }
     if (btn.dataset.speed) { game.speed = Number(btn.dataset.speed); accumulated = 0; refresh(); return; }
     if (btn.id === 'time-pause') { game.speed = 0; accumulated = 0; refresh(); }
     if (btn.id === 'next-day') { advanceDay(); }
     if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); }
-    if (btn.id === 'back-to-map') { const map = typeof document.querySelector === 'function' ? document.querySelector('.map-panel') : null; if (map && typeof map.scrollIntoView === 'function') map.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    if (btn.id === 'back-to-map') { game.tab = 'map'; refresh(); }
     if (btn.id === 'new-game') {
       if (window.confirm('Iniciar uma nova campanha? O progresso guardado será substituído.')) { createGame(); refresh(); }
     }

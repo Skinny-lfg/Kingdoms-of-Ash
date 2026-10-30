@@ -13,6 +13,21 @@
 
 A gravação é automática via `localStorage`, **apenas neste navegador e dispositivo**. Ao reabrir o jogo, a simulação permanece em pausa. O botão **Nova campanha** substitui o save após confirmação.
 
+## Interface v0.3 — organização clássica de aldeia (inspirada em Travian)
+
+A interface passou a seguir a navegação familiar dos jogos de aldeia:
+
+- **Recursos:** vista ilustrativa dos quatro grupos de campos, com níveis reais e escolha de melhorias.
+- **Aldeia:** vista do centro com quartel, paliçada e mercado, ligada às mesmas construções reais.
+- **Mapa:** vista separada do continente, para selecionar territórios, colonizar, atacar e conquistar.
+- **Tropas, Diplomacia, Ranking e Relatórios:** ecrãs dedicados, acessíveis pela barra superior.
+- **Coluna direita:** lista de aldeias, dados do território selecionado, ações e notícias.
+- **Recursos e tempo:** sempre visíveis no topo do ecrã.
+
+Esta é uma **adaptação de organização e fluxo**, não uma reprodução dos gráficos, logótipos, ilustrações ou código do Travian. As ilustrações do centro são marcadores originais em CSS/emoji; serão substituídas por arte própria do jogo numa fase seguinte.
+
+**Compatibilidade:** o save anterior mantém-se. O jogo continua sem backend nem mudanças na economia, combate, IA ou diplomacia. O novo separador Mapa também pode ser aberto diretamente pelo menu superior.
+
 ## Navegação simplificada (atualização UX)
 
 - O menu **Aldeias · Exército · Diplomacia · Ranking · Crónicas** fica horizontal, libertando espaço para o mapa.
