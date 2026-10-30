@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./travian-layout.css">
   <link rel="stylesheet" href="./mobile-layout.css">
+  <link rel="stylesheet" href="./turns-reports.css">
   <script src="./game.js" defer></script>
 </head>
 <body>
@@ -23,16 +24,14 @@
         <strong id="day-label">Dia 1</strong>
         <span id="phase-label" class="muted">A era dos pequenos reinos</span>
       </div>
-      <div class="time-controls" aria-label="Controlo do tempo">
-        <button id="time-pause" class="speed active" type="button" aria-label="Pausar o jogo">Ⅱ</button>
-        <button data-speed="1" class="speed" type="button">1×</button>
-        <button data-speed="5" class="speed" type="button">5×</button>
-        <button data-speed="20" class="speed" type="button">20×</button>
-        <button id="next-day" class="button subtle" type="button">+1 dia ↗</button>
+      <div class="time-controls" aria-label="Controlar turnos">
+        <span class="turn-caption">🎲 Sem temporizador</span>
+        <button id="next-day" class="button primary next-turn" type="button">⏭️ Terminar turno</button>
       </div>
     </header>
 
     <section class="resource-strip" id="resources" aria-label="Recursos do império"></section>
+    <section class="military-strip panel" id="military-strip" aria-label="Tropas e ataques a caminho"></section>
 
     <section id="mobile-extra-nav" class="navigation-strip panel">
       <nav id="nav" class="nav" aria-label="Navegação principal">
@@ -42,7 +41,8 @@
         <button type="button" class="nav-button" data-tab="army"><span>⚔️</span><b>Tropas</b></button>
         <button type="button" class="nav-button" data-tab="diplomacy"><span>🤝</span><b>Diplomacia</b></button>
         <button type="button" class="nav-button" data-tab="ranking"><span>🏆</span><b>Ranking</b></button>
-        <button type="button" class="nav-button" data-tab="chronicle"><span>📜</span><b>Relatórios</b></button>
+        <button type="button" class="nav-button" data-tab="reports"><span>📜</span><b>Relatórios</b><small id="report-badge" class="report-badge hidden" aria-label="Relatórios por ler">0</small></button>
+        <button type="button" class="nav-button" data-tab="chronicle"><span>📖</span><b>Crónicas</b></button>
       </nav>
       <div class="nav-actions"><button id="new-game" type="button" class="text-button">↻ Nova campanha</button></div>
     </section>
@@ -98,7 +98,7 @@
       </aside>
     </div>
 
-    <footer class="footline"><span>KINGDOMS OF ASH · UI V0.4</span><span>Inspirado na organização clássica dos jogos de estratégia de aldeias.</span></footer>
+    <footer class="footline"><span>KINGDOMS OF ASH · V0.4 · ALDEIAS E TURNOS</span><span>Inspirado na organização clássica dos jogos de estratégia de aldeias.</span></footer>
   </div>
   <nav class="mobile-bottom-nav" aria-label="Navegação rápida">
     <button type="button" class="nav-button active" data-tab="village" data-mode="production"><span aria-hidden="true">🌾</span><b>Recursos</b></button>
