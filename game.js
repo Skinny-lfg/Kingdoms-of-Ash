@@ -221,8 +221,8 @@ function upkeep(id) {
       t.garrison = blankTroops();
     });
     migrateStrategy();
-    message('O continente desperta', 'Seis governantes reclamam as suas primeiras aldeias. Apenas um poderá unificar as Terras de Cinza.');
-    message('A coroa é tua', 'Constrói, recruta, expande, negoceia e disputa o primeiro lugar. Termina o turno para os rivais agirem.');
+    message('The continent awakens', 'Six rulers claim their first villages. Only one may unite the Ashen Continent.');
+    message('Your crown awaits', 'Build, recruit, expand and negotiate. End your turn to let rivals act.');
     save();
   }
   function save() {
@@ -255,7 +255,7 @@ function upkeep(id) {
     if (!spend(id, price)) return false;
     const days = key === 'barracks' ? 3 : 2;
     t.construction = { key: key, left: days };
-    if (!quiet) message('Obras em ' + t.name, BUILDINGS[key].label + ' em construção. Conclusão em ' + days + ' dias.');
+    if (!quiet) message('Obras em ' + t.name, BUILDINGS[key].label + ' under construction. Finishes in ' + days + ' dias.');
     return true;
   }
   function train(id, unitKey, qty, quiet) {
@@ -263,7 +263,7 @@ function upkeep(id) {
     const cost = Object.fromEntries(RES.map(function (r) { return [r.key, UNITS[unitKey].cost[r.key] * qty]; }));
     if (!spend(id, cost)) return false;
     game.factions[id].troops[unitKey] += qty;
-    if (!quiet) message('Tropas recrutadas', qty + ' ' + UNITS[unitKey].label.toLowerCase() + ' juntam-se ao exército.');
+    if (!quiet) message('Troops recruited', qty + ' ' + UNITS[unitKey].label.toLowerCase() + ' join the reserve.');
     return true;
   }
   function travelDays(id, target) { return Math.max(1, Math.ceil(nearestDistance(id, target) / 3)); }
@@ -385,14 +385,14 @@ function defendTroops(owner,tileId) {
     const success = defending ? !report.victory : report.victory;
     const icon = defending ? (success ? '🛡️' : '🚨') : '⚔️';
     const title = defending
-      ? (success ? 'Defesa vitoriosa' : report.conquered ? 'Aldeia conquistada pelo inimigo' : 'Aldeia saqueada')
-      : (success ? (report.conquered ? 'Conquista vitoriosa' : 'Ataque vitorioso') : 'Ataque repelido');
+      ? (success ? 'Defense victorious' : report.conquered ? 'Village conquered by an enemy' : 'Village raided')
+      : (success ? (report.conquered ? 'Conquest victorious' : 'Attack victorious') : 'Attack repelled');
     const rival = defending ? report.attacker : report.defender;
-    const enemyName = rival < 0 ? 'milícias neutras' : game.factions[rival].name;
+    const enemyName = rival < 0 ? 'neutral militia' : game.factions[rival].name;
     const lost = defending ? report.defenders.lost : report.attackers.lost;
-    const detail = (defending ? 'Defendeste ' : 'Atacaste ') + game.tiles[report.tile].name +
-      ' contra ' + enemyName + '. Perdas: ' + format(armyCount(lost)) +
-      ' soldados. Saque: ' + costText(report.loot) + '.';
+    const detail = (defending ? 'You defended ' : 'You attacked ') + game.tiles[report.tile].name +
+      ' against ' + enemyName + '. Losses: ' + format(armyCount(lost)) +
+      ' troops. Loot: ' + costText(report.loot) + '.';
     message(icon + ' ' + title, detail, defending ? 'incoming' : 'outgoing', report.id);
   }
 function resolveMission(m) {
@@ -544,13 +544,13 @@ function resolveMission(m) {
         const r = relation(id, target.id);
         if (r.stance === 'pact' && (f.style === 'diplomatic' || f.style === 'defensive') && r.opinion >= 20) {
           setStance(id, target.id, 'alliance', r.opinion + 12);
-          message('Nova aliança', f.name + ' e ' + target.name + ' uniram as suas forças.');
+          message('New alliance', f.name + ' e ' + target.name + ' formed an alliance.');
         } else if (r.stance === 'neutral' && (f.style === 'aggressive' || f.style === 'opportunist') && armyPower(f.troops) > armyPower(target.troops) * 1.15) {
           setStance(id, target.id, 'war', -80);
-          message('Fronteira em chamas', f.name + ' declarou guerra a ' + target.name + '.', 'war');
+          message('Border in flames', f.name + ' declared war on ' + target.name + '.', 'war');
         } else if (r.stance === 'neutral' && (f.style === 'diplomatic' || f.style === 'defensive') && r.opinion >= -4) {
           setStance(id, target.id, 'pact', 26);
-          message('Novo acordo', f.name + ' assinou um pacto com ' + target.name + '.');
+          message('New treaty', f.name + ' signed a pact with ' + target.name + '.');
         }
       }
     }
@@ -618,7 +618,7 @@ function produceAndBuild() {
     if (!nearby.length) return;
     const rival = nearby[rand(nearby.length)];
     game.event = { faction: rival.id, type: 'ultimatum' }; game.lastEventDay = game.day;
-    message('Ultimato diplomático', rival.name + ' exige um tributo para manter a paz.');
+    message('Diplomatic ultimatum', rival.name + ' demands tribute in exchange for peace.');
   }
   function checkEnd() {
     const leaders = ranking();
@@ -626,12 +626,12 @@ function produceAndBuild() {
       game.dominance[f.id] = ownTiles(f.id).length >= 10 && leaders[0].id === f.id ? (game.dominance[f.id] || 0) + 1 : 0;
       if (game.dominance[f.id] >= 4 && !game.ended) {
         game.ended = { winner: f.id, reason: 'dominance' };
-        message('O continente tem um soberano', f.name + ' dominou pelo menos 10 províncias e liderou o ranking durante quatro dias.');
+        message('A ruler controls the continent', f.name + ' controlled 10 provinces and led the rankings for four turns.');
       }
     });
     if (!ownTiles(0).length && !game.ended) {
       game.ended = { winner: -1, reason: 'defeat' };
-      message('A coroa caiu', 'A tua última aldeia foi conquistada. A campanha terminou.', 'war');
+      message('The crown has fallen', 'Your final village was conquered. The campaign is over.', 'war');
     }
   }
   function advanceDay() {
@@ -658,17 +658,17 @@ function produceAndBuild() {
     const incoming = incomingMarches();
     const outgoing = game.missions.filter(function (m) { return m.owner === 0 && !m.returnTrip; });
     const unread = game.reports.filter(function (r) { return !r.read; }).length;
-    let html = '<div class="military-label">🪖 <strong>Exército disponível</strong></div><div class="military-units">';
+    let html = '<div class="military-label">🪖 <strong>Available reserves</strong></div><div class="military-units">';
     Object.keys(UNITS).forEach(function (k) {
       html += '<span class="military-unit" title="' + UNITS[k].label + '">' + UNITS[k].icon + ' <strong>' + format(player().troops[k]) + '</strong></span>';
     });
     html += '</div><div class="military-activity">';
     if (incoming.length) {
       const soonest = Math.min.apply(null, incoming.map(function (m) { return m.eta; }));
-      html += '<span class="incoming-alert" role="status">🚨 ' + incoming.length + ' ataque(s) a caminho · ' + soonest + ' turno(s)</span>';
-    } else html += '<span class="calm-alert">🛡️ Sem ataques a caminho</span>';
-    if (outgoing.length) html += '<span>⚔️ ' + outgoing.length + ' missão(ões) enviadas</span>';
-    html += '</div><div class="military-action">' + actionButton('📜 Relatórios' + (unread ? ' (' + unread + ')' : ''), 'open-reports', '', unread ? 'primary' : 'subtle small') + '</div>';
+      html += '<span class="incoming-alert" role="status">🚨 ' + incoming.length + ' incoming attack(s) · ' + soonest + ' turno(s)</span>';
+    } else html += '<span class="calm-alert">🛡️ No attacks incoming</span>';
+    if (outgoing.length) html += '<span>⚔️ ' + outgoing.length + ' outgoing mission(s)</span>';
+    html += '</div><div class="military-action">' + actionButton('📜 Reports' + (unread ? ' (' + unread + ')' : ''), 'open-reports', '', unread ? 'primary' : 'subtle small') + '</div>';
     $('military-strip').innerHTML = html;
     const badge = $('report-badge');
     badge.textContent = String(unread);
@@ -692,7 +692,7 @@ function produceAndBuild() {
     }).join('');
     $('map-legend').innerHTML = game.factions.map(function (f) {
       return '<span class="legend-item"><i class="legend-dot" style="--dot:' + f.color + '"></i>' + f.name + '</span>';
-    }).join('') + '<span class="legend-item">🌿 Neutro</span><span class="legend-item">⚔️ Guerra</span><span class="legend-item">🤝 Aliança</span><span class="legend-item">🚨 Sob ataque</span>';
+    }).join('') + '<span class="legend-item">🌿 Neutral</span><span class="legend-item">⚔️ War</span><span class="legend-item">🤝 Alliance</span><span class="legend-item">🚨 Under attack</span>';
   }
   function fact(label, value) { return '<div class="fact-row"><span>' + label + '</span><strong>' + value + '</strong></div>'; }
   function actionButton(label, action, attrs, style, disabled) {
@@ -817,7 +817,7 @@ function renderArmy(){
  return out+'</div></div>';
 }
 
-  function stanceName(stance) { return { neutral: 'Neutro', pact: 'Não agressão', alliance: 'Aliança', war: 'Em guerra' }[stance] || stance; }
+  function stanceName(stance) { return { neutral: 'Neutral', pact: 'Não agressão', alliance: 'Alliance', war: 'Em guerra' }[stance] || stance; }
   function renderDiplomacy() {
     let out = '<div class="workspace-body"><p class="section-intro">Uma aliança protege fronteiras e permite pedir apoio. Presentes melhoram relações, mas rivais poderosos também podem ameaçar-te.</p><div class="diplomacy-list">';
     game.factions.slice(1).forEach(function (f) {
@@ -856,7 +856,7 @@ function renderArmy(){
   }
   function renderReports() {
     let out = '<div class="workspace-body"><p class="section-intro">📜 Histórico das tuas ofensivas e defesas. Os números mostram tropas efetivamente envolvidas, baixas e recursos levados após o combate. As marchas ainda a caminho não aparecem aqui.</p>';
-    if (!game.reports.length) return out + '<p class="muted-note">Ainda não ocorreram batalhas contra a tua coroa. Envia um ataque ou espera por uma ofensiva rival.</p></div>';
+    if (!game.reports.length) return out + '<p class="muted-note">Ainda não ocorreram batalhas against a tua coroa. Envia um ataque ou espera por uma ofensiva rival.</p></div>';
     game.reports.forEach(function (r) {
       const defending = r.defender === 0;
       const success = defending ? !r.victory : r.victory;
@@ -865,7 +865,7 @@ function renderArmy(){
       const attacker = game.factions[r.attacker].name;
       const defender = r.defender < 0 ? 'Milícias neutras' : game.factions[r.defender].name;
       out += '<article id="battle-report-' + r.id + '" class="battle-report ' + (success ? 'battle-win' : 'battle-loss') + '">';
-      out += '<div class="battle-header"><div><span class="battle-type">' + side + ' · TURNO ' + r.day + '</span><h3>' + game.tiles[r.tile].name + ' <span class="pill ' + (success ? 'pact' : 'war') + '">' + (r.conquered ? '🏰 Conquista' : status) + '</span></h3></div><span class="battle-direction">' + (defending ? '🛡️ Recebido' : '⚔️ Enviado') + '</span></div>';
+      out += '<div class="battle-header"><div><span class="battle-type">' + side + ' · TURN ' + r.day + '</span><h3>' + game.tiles[r.tile].name + ' <span class="pill ' + (success ? 'pact' : 'war') + '">' + (r.conquered ? '🏰 Conquista' : status) + '</span></h3></div><span class="battle-direction">' + (defending ? '🛡️ Recebido' : '⚔️ Enviado') + '</span></div>';
       out += '<p class="battle-summary">' + attacker + ' ⚔️ ' + defender + ' · ' + (r.mode === 'conquer' ? 'Tentativa de conquista' : 'Incursão') + '</p>';
       out += battleSide('⚔️ Força atacante — ' + attacker, r.attackers);
       out += battleSide('🛡️ Força defensora — ' + defender, r.defenders);
@@ -882,7 +882,7 @@ function renderArmy(){
   }
   function renderChronicle() {
     return '<div class="workspace-body"><p class="section-intro">Os adversários crescem, negociam e entram em guerra entre si. Cada notícia corresponde a um acontecimento da simulação.</p><div class="chronicle-list">' + game.logs.map(function (l) {
-      return '<div class="chronicle-row"><strong class="chronicle-day">DIA ' + l.day + '</strong><div><strong>' + l.title + '</strong><p>' + l.detail + '</p></div></div>';
+      return '<div class="chronicle-row"><strong class="chronicle-day">TURN ' + l.day + '</strong><div><strong>' + l.title + '</strong><p>' + l.detail + '</p></div></div>';
     }).join('') + '</div></div>';
   }
   function renderVillageList() {
@@ -923,7 +923,7 @@ function renderArmy(){
     $('scene-ground').innerHTML = out;
   }
   function renderWorkspace() {
-    const titles = { village: ['MELHORIAS DA ALDEIA', game.villageMode === 'production' ? 'Campos de produção' : 'Edifícios e defesa'], map: ['O CONTINENTE', 'Mapa das províncias'], army: ['ESTRATÉGIA MILITAR', 'Exército e marchas'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELO CONTINENTE', 'Ranking dos impérios'], reports: ['HISTÓRICO MILITAR', '📜 Relatórios de batalha'], chronicle: ['HISTÓRIA EM MOVIMENTO', 'Crónicas do mundo'] };
+    const titles = { village: ['MELHORIAS DA ALDEIA', game.villageMode === 'production' ? 'Campos de produção' : 'Edifícios e defesa'], map: ['O CONTINENTE', 'Mapa das províncias'], army: ['ESTRATÉGIA MILITAR', 'Exército e marchas'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELO CONTINENTE', 'Ranking dos impérios'], reports: ['HISTÓRICO MILITAR', '📜 Reports de batalha'], chronicle: ['HISTÓRIA EM MOVIMENTO', 'Crónicas do mundo'] };
     const item = titles[game.tab] || titles.village;
     $('workspace-kicker').textContent = item[0]; $('workspace-title').textContent = item[1];
     const layouts = { village: renderVillage, map: function () { return ''; }, army: renderArmy, diplomacy: renderDiplomacy, ranking: renderRanking, reports: renderReports, chronicle: renderChronicle };
@@ -938,8 +938,8 @@ function renderArmy(){
   function renderDispatches() {
     $('dispatch-list').innerHTML = game.logs.slice(0, 5).map(function (l) {
       const symbol = l.tone === 'incoming' ? '🚨' : l.tone === 'outgoing' ? '⚔️' : l.tone === 'war' ? '🛡️' : '✦';
-      return '<div class="dispatch-item"><span class="dispatch-bullet">' + symbol + '</span><div><span class="dispatch-time">TURNO ' + l.day + '</span><strong>' + l.title + '</strong><p>' + l.detail + '</p>' +
-        (l.reportId ? actionButton('📜 Ver relatório →', 'view-report', 'data-report-id="' + l.reportId + '"', 'small subtle') : '') +
+      return '<div class="dispatch-item"><span class="dispatch-bullet">' + symbol + '</span><div><span class="dispatch-time">TURN ' + l.day + '</span><strong>' + l.title + '</strong><p>' + l.detail + '</p>' +
+        (l.reportId ? actionButton('📜 View report →', 'view-report', 'data-report-id="' + l.reportId + '"', 'small subtle') : '') +
         '</div></div>';
     }).join('');
   }
@@ -949,18 +949,18 @@ function renderArmy(){
       if (game.endSummaryDismissed) { node.classList.add('hidden'); node.innerHTML = ''; return; }
       const victor = game.ended.winner >= 0 ? game.factions[game.ended.winner].name : 'Os reinos rivais';
       node.classList.remove('hidden');
-      node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Fim da campanha"><p class="eyebrow">A ÚLTIMA CRÓNICA</p><h2>' + (game.ended.winner === 0 ? 'A coroa é tua' : 'O império caiu') + '</h2><p>' + victor + ' venceu a campanha. ' + (game.ended.winner === 0 ? 'Conquistaste o direito de governar o continente.' : 'As escolhas dos reinos transformaram o mapa sem piedade.') + ' O mundo chegou ao seu desfecho no dia ' + game.day + '.</p><div class="event-actions">' + actionButton('📜 Ver relatórios', 'review-end', '', 'subtle') + actionButton('Começar nova campanha', 'restart', '', 'primary') + '</div></div>';
+      node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Fim da campanha"><p class="eyebrow">A ÚLTIMA CRÓNICA</p><h2>' + (game.ended.winner === 0 ? 'Your crown awaits' : 'O império caiu') + '</h2><p>' + victor + ' venceu a campanha. ' + (game.ended.winner === 0 ? 'Conquistaste o direito de governar o continente.' : 'As escolhas dos reinos transformaram o mapa sem piedade.') + ' O mundo chegou ao seu desfecho no dia ' + game.day + '.</p><div class="event-actions">' + actionButton('📜 View reports', 'review-end', '', 'subtle') + actionButton('Começar nova campanha', 'restart', '', 'primary') + '</div></div>';
       return;
     }
     if (!game.event) { node.classList.add('hidden'); node.innerHTML = ''; return; }
     const rival = game.factions[game.event.faction];
     node.classList.remove('hidden');
-    node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Ultimato diplomático"><p class="eyebrow">MENSAGEIRO À PORTA DO SALÃO</p><h2>A fronteira tem um preço</h2><p>Um emissário de <strong>' + rival.name + '</strong> chegou à tua corte. Exige 70 de madeira e 70 de cereais como garantia de paz. Recusar a proposta poderá desencadear uma guerra.</p><div class="event-actions">' + actionButton('Pagar tributo', 'event-pay', '', 'primary', !canAfford(0, {wood:70,grain:70})) + actionButton('Recusar exigência', 'event-refuse', '', 'danger') + '</div></div>';
+    node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Diplomatic ultimatum"><p class="eyebrow">MENSAGEIRO À PORTA DO SALÃO</p><h2>A fronteira tem um preço</h2><p>Um emissário de <strong>' + rival.name + '</strong> chegou à tua corte. Exige 70 de madeira e 70 de cereais como garantia de paz. Recusar a proposta poderá desencadear uma guerra.</p><div class="event-actions">' + actionButton('Pagar tributo', 'event-pay', '', 'primary', !canAfford(0, {wood:70,grain:70})) + actionButton('Recusar exigência', 'event-refuse', '', 'danger') + '</div></div>';
   }
   function renderGuidance() {
     const capital = game.tiles[19];
     const built = ownTiles(0).some(function (t) { return t.construction || ['wood','clay','iron','grain'].some(function (k) { return t.levels[k] > (t.id === 19 ? 2 : 1); }); });
-    const trained = game.logs.some(function (l) { return l.title === 'Tropas recrutadas'; });
+    const trained = game.logs.some(function (l) { return l.title === 'Troops recruited'; });
     const settled = ownTiles(0).length > 1 || game.missions.some(function (m) { return m.owner === 0 && m.mode === 'settle'; });
     let title, detail, label, action;
     if (game.ended) {
@@ -978,7 +978,7 @@ function renderArmy(){
       detail = 'Seleciona um território neutro próximo. Junta recursos suficientes e envia colonos.';
       label = 'Encontrar terreno'; action = 'guide-expand';
     } else {
-      title = 'O teu reino está em movimento';
+      title = 'Your empire is growing';
       detail = 'Constrói, prepara o exército, negoceia e observa o ranking. Termina o turno quando quiseres que os rivais ajam.';
       label = 'Ver ranking'; action = 'open-ranking';
     }
@@ -1018,11 +1018,11 @@ function renderArmy(){
     $('workspace').classList.toggle('hidden-pane', game.tab === 'map');
     $('game-layout').classList.toggle('map-mode', game.tab === 'map');
     $('game-layout').classList.toggle('village-mode', game.tab === 'village');
-    $('day-label').textContent = 'Turno ' + game.day;
+    $('day-label').textContent = 'Turn ' + game.day;
     $('phase-label').textContent = game.day < 20 ? 'A era dos pequenos reinos' : game.day < 60 ? 'A era das conquistas' : 'A disputa pela coroa';
     $('next-day').disabled = !!game.ended || !!game.event;
     $('mobile-next-turn').disabled = !!game.ended || !!game.event;
-    $('mobile-turn-label').textContent = 'Turno ' + game.day;
+    $('mobile-turn-label').textContent = 'Turn ' + game.day;
     $('mobile-next-turn').title = game.event ? 'Resolve o evento antes de passar turno' : game.ended ? 'A campanha terminou' : 'Terminar turno ' + game.day;
     $('mobile-next-turn').setAttribute('aria-label', game.event ? 'Resolve o evento antes de passar turno' : game.ended ? 'A campanha terminou' : 'Terminar turno ' + game.day + ' e avançar para o seguinte');
     $('empire-mini').innerHTML = '<span class="tiny-label">O TEU IMPÉRIO</span><div class="mini-stat"><span>Aldeias</span><strong>' + ownTiles(0).length + '</strong></div><div class="mini-stat"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="mini-stat"><span>Posição</span><strong>#' + (ranking().findIndex(function (f) { return f.id === 0; }) + 1) + '</strong></div><div class="mini-stat"><span>Missões</span><strong>' + game.missions.filter(function (m) { return m.owner === 0; }).length + '</strong></div>';
@@ -1039,16 +1039,16 @@ function renderArmy(){
       if (r.opinion + (f.style === 'diplomatic' ? 20 : 0) >= 8) { setStance(0,id,'pact',r.opinion + 10); message('Pacto assinado', 'As fronteiras com ' + f.name + ' estão protegidas por um acordo de não agressão.'); }
       else { r.opinion += 2; notice('Pacto recusado. Melhora as relações primeiro.', true); }
     } else if (action === 'alliance' && r.stance === 'pact') {
-      if (r.opinion >= 45) { setStance(0,id,'alliance',r.opinion + 8); message('Aliança formada', f.name + ' juntou-se à tua aliança. Podes pedir ajuda militar e económica.'); }
+      if (r.opinion >= 45) { setStance(0,id,'alliance',r.opinion + 8); message('Alliance formada', f.name + ' juntou-se à tua aliança. Podes pedir ajuda militar e económica.'); }
       else { notice('É preciso ter pelo menos 45 de opinião.', true); }
     } else if (action === 'aid' && r.stance === 'alliance') {
       if (game.day - (r.lastAid || -100) < 8 || f.resources.wood < 130 || f.resources.grain < 130 || f.troops.spear < 7) return notice('O aliado não consegue enviar apoio. Tenta mais tarde.', true);
       r.lastAid = game.day; f.resources.wood -= 100; f.resources.grain -= 100; f.troops.spear -= 5;
       give(0, { wood: 100, grain: 100 }); player().troops.spear += 5;
       r.opinion = Math.max(-100, r.opinion - 5);
-      message('Reforços aliados', f.name + ' enviou 5 lanceiros, madeira e cereais em auxílio da coroa.');
+      message('Allied reinforcements', f.name + ' enviou 5 lanceiros, madeira e cereais em auxílio da coroa.');
     } else if (action === 'war' && r.stance === 'neutral') {
-      setStance(0,id,'war',-90); message('Declaração de guerra', 'A coroa declarou guerra a ' + f.name + '.', 'war');
+      setStance(0,id,'war',-90); message('Declaração de guerra', 'A coroa declared war on ' + f.name + '.', 'war');
     } else if (action === 'peace' && r.stance === 'war') {
       if (armyPower(player().troops) > armyPower(f.troops) * 0.75 || r.opinion > -40) { setStance(0,id,'neutral',-20); message('Tratado de paz', f.name + ' aceitou cessar as hostilidades.'); }
       else notice('O rival considera a tua posição demasiado fraca para negociar.', true);
@@ -1064,7 +1064,7 @@ function renderArmy(){
     if (action === 'end-turn') {
       if (game.ended || game.event) { notice(game.event ? 'Resolve o evento antes de avançar.' : 'Esta campanha terminou.', true); return; }
       advanceDay();
-      notice('⏭️ Turno ' + game.day + ' iniciado');
+      notice('⏭️ Turn ' + game.day + ' iniciado');
       return;
     }
     if (action === 'restart') { createGame(); refresh(); return; }
@@ -1170,7 +1170,7 @@ function renderArmy(){
     if (btn.id === 'next-day' || btn.id === 'mobile-next-turn') {
       if (game.ended || game.event) return;
       advanceDay();
-      notice('⏭️ Turno ' + game.day + ' iniciado');
+      notice('⏭️ Turn ' + game.day + ' iniciado');
       return;
     }
     if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); return; }
