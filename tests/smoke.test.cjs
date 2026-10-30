@@ -32,9 +32,10 @@ function startGame(persistentStore) {
   return {
     state() { return window.KingdomsOfAsh.getState(); },
     advance() { window.KingdomsOfAsh.advance(); },
-    click(data) {
-      handlers.click({ target: { closest() { return { dataset: data, disabled: false }; } } });
+    click(data, id) {
+      handlers.click({ target: { closest() { return { id: id || '', dataset: data, disabled: false }; } } });
     },
+    html(id) { return document.getElementById(id).innerHTML; },
     store
   };
 }
@@ -50,7 +51,7 @@ function clearEvent(game) {
 test('mapa, fações e campanha começam corretamente', () => {
   const g = startGame();
   const s = g.state();
-  assert.equal(s.version, 1);
+  assert.equal(s.version, 2);
   assert.equal(s.day, 1);
   assert.equal(s.speed, 0);
   assert.equal(s.tiles.length, 40);
@@ -93,7 +94,7 @@ test('recrutamento, incursão e regresso das tropas', () => {
   assert.ok(totals(g.state(), 0) < initial + 5);
   g.advance(); g.advance();
   assert.equal(g.state().missions.filter(m => m.owner === 0).length, 0);
-  assert.ok(g.state().logs.some(l => l.title === 'Tropas regressaram'));
+  assert.ok(g.state().logs.some(l => l.title.includes('Tropas regressaram')));
 });
 
 test('diplomacia: presente, pacto, aliança e apoio', () => {
@@ -123,19 +124,19 @@ test('a simulação avança, os rivais expandem e ninguém fica com recursos neg
     if (s.ended) break;
   }
   assert.ok(g.state().tiles.filter(t => t.owner >= 0).length >= 15);
-  assert.ok(g.state().logs.some(l => l.title === 'Nova aldeia fundada'));
+  assert.ok(g.state().logs.some(l => l.title.includes('Nova aldeia fundada')));
 });
 
-test('o progresso é recuperado do mesmo navegador, mas o tempo reabre pausado', () => {
+test('o progresso é recuperado do mesmo navegador, sempre por turnos', () => {
   const store = new Map();
   const a = startGame(store);
   a.click({ tile: '20' });
   a.click({ action: 'settle' });
   a.advance();
   a.click({ tab: 'ranking' });
-  a.click({ speed: '20' });
+  a.click({}, 'next-day');
   const b = startGame(store);
-  assert.equal(b.state().day, 2);
+  assert.equal(b.state().day, 3);
   assert.equal(b.state().tiles[20].owner, 0);
   assert.equal(b.state().speed, 0);
   assert.equal(b.state().tab, 'ranking');
