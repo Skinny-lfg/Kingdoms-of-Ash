@@ -28,10 +28,10 @@
     siege: { label: 'Catapults', icon: '💣', attack: 16, defense: 2, upkeep: 1.2, cost: { wood: 125, clay: 115, iron: 135, grain: 70 }, unlock: 3 }
   };
   const BUILDINGS = {
-    wood: { label: 'Lumber Camp', desc: 'Increases wood production.', base: { wood: 55, clay: 75, iron: 40, grain: 45 } },
-    clay: { label: 'Clay Pit', desc: 'Increases clay production.', base: { wood: 75, clay: 50, iron: 45, grain: 40 } },
-    iron: { label: 'Iron Mine', desc: 'Increases iron production.', base: { wood: 85, clay: 65, iron: 45, grain: 40 } },
-    grain: { label: 'Grain Farm', desc: 'Increases grain production.', base: { wood: 65, clay: 60, iron: 45, grain: 35 } },
+    wood: { icon: '🌲', label: 'Lumber Camp', desc: 'Increases wood production.', base: { wood: 55, clay: 75, iron: 40, grain: 45 } },
+    clay: { icon: '🧱', label: 'Clay Pit', desc: 'Increases clay production.', base: { wood: 75, clay: 50, iron: 45, grain: 40 } },
+    iron: { icon: '⛏️', label: 'Iron Mine', desc: 'Increases iron production.', base: { wood: 85, clay: 65, iron: 45, grain: 40 } },
+    grain: { icon: '🌾', label: 'Grain Farm', desc: 'Increases grain production.', base: { wood: 65, clay: 60, iron: 45, grain: 35 } },
     barracks: { icon: '⚔️', label: 'Barracks', desc: 'Level 2: cavalry. Level 3: catapults.', base: { wood: 105, clay: 115, iron: 100, grain: 65 } },
     wall: { icon: '🏰', label: 'Palisade', desc: 'Strengthens village defenses.', base: { wood: 95, clay: 85, iron: 65, grain: 60 } },
     market: { icon: '⚖️', label: 'Market', desc: 'Slightly improves all resource yields.', base: { wood: 85, clay: 95, iron: 80, grain: 70 } }
@@ -45,11 +45,11 @@
     { name: 'Northern Sentinels', short: 'SN', color: '#82bfb4', style: 'defensive', capital: 4 }
   ];
   const NAMES = [
-    'Karn Vell','Ardewyn','Black Sail','North Ash','Winter Tower','Crow Nest','Cold Meadow','Varyn',
-    'Rockspire','Salt Wolves','Dark Iron','Watering Hole','Bone Village','Old Wall','Broken Ridge','East Bridge',
-    'Forgotten Vale','Mistvale','High Road','Ashheart','Dryfield','Serpent Fang','Ancient Spring','Bell Tower',
-    'Black River','Ancient Grove','Hollow Hill','Red Vein','Broken Arch','Stonehand','Crossroads','Gray Sands',
-    'Tradeport','Longshadow','Hollow Forest','South Pass','Lantern Fields','Kings Tomb','Iron Lake','Ashen Mound'
+    "Ashen Keep", "Dawnwatch", "Blackhaven", "Northwatch", "Winterhold", "Raven Nest", "Frostmeadow", "Varyn Hold",
+    "Rockspire", "Saltfen", "Darkforge", "Wellspring", "Boneford", "Oldwall", "Brokenridge", "Eastbridge",
+    "Forgotten Vale", "Mistvale", "Highroad", "Ashheart", "Dryfield", "Serpent Fang", "Oldspring", "Bellwatch",
+    "Blackwater", "Elderwood", "Hollow Hill", "Redvein", "Broken Arch", "Stonehand", "Crossroads", "Gray Sands",
+    "Tradeport", "Longshadow", "Hollowgrove", "Southpass", "Lantern Fields", "Kings Rest", "Ironlake", "Ashmound"
   ];
   const SETTLE_BASE = { wood: 330, clay: 330, iron: 260, grain: 360 };
   const $ = function (id) { return document.getElementById(id); };
@@ -247,6 +247,8 @@ function upkeep(id) {
         game.reports = Array.isArray(game.reports) ? game.reports : [];
         game.endSummaryDismissed = !!game.endSummaryDismissed;
         migrateStrategy();
+        // Translate the 40 fixed provinces without changing owners, buildings, resources or armies.
+        game.tiles.forEach(function (tile, index) { tile.name = NAMES[index]; });
         game.reportSeq = Number.isInteger(game.reportSeq) ? game.reportSeq : game.reports.reduce(function (n, r) { return Math.max(n, r.id || 0); }, 0);
         return true;
       }
@@ -261,7 +263,7 @@ function upkeep(id) {
     if (!spend(id, price)) return false;
     const days = key === 'barracks' ? 3 : 2;
     t.construction = { key: key, left: days };
-    if (!quiet) message('Obras em ' + t.name, BUILDINGS[key].label + ' under construction. Finishes in ' + days + ' turns.');
+    if (!quiet) message('Upgrade started in ' + t.name, BUILDINGS[key].label + ' under construction. Finishes in ' + days + ' turns.');
     return true;
   }
   function train(id, unitKey, qty, quiet) {
@@ -701,7 +703,7 @@ function produceAndBuild() {
       const style = f ? ' style="--owner:' + f.color + '"' : '';
       return '<button class="tile terrain-' + t.terrain + (f ? ' owned' : '') + (t.id === game.selected ? ' selected' : '') +
         (danger ? ' tile-threat' : '') + '"' + style + ' type="button" data-tile="' + t.id +
-        '" aria-pressed="' + (t.id === game.selected) + '" title="' + t.name + ' — ' + (f ? f.name : 'Terras neutras') +
+        '" aria-pressed="' + (t.id === game.selected) + '" title="' + t.name + ' — ' + (f ? f.name : 'Neutral lands') +
         '"><span class="tile-symbol">' + symbol + '</span><span class="tile-terrain" title="' + TERRAIN[t.terrain].label + '">' + TERRAIN[t.terrain].icon +
         '</span><span class="tile-name">' + t.name + '</span><span class="tile-level">' + (f ? 'Nv. ' + (t.levels.wood + t.levels.clay + t.levels.iron + t.levels.grain) : '•') +
         '</span>' + (f ? '<span class="tile-marker">' + f.short + '</span>' : '') +
@@ -787,7 +789,7 @@ function renderSelected(){
     Object.keys(BUILDINGS).filter(function (k) { return game.villageMode === 'infrastructure' ? !['wood','clay','iron','grain'].includes(k) : ['wood','clay','iron','grain'].includes(k); }).sort(function (a, b) { return (a === game.buildingFocus ? -1 : b === game.buildingFocus ? 1 : 0); }).forEach(function (k) {
       const lv = focused.levels[k]; const cost = buildingCost(focused, k);
       const can = !focused.construction && lv < 5 && canAfford(0, cost);
-      const status = focused.construction && focused.construction.key === k ? 'Em obras · ' + focused.construction.left + 'd' : lv >= 5 ? 'Maximum' : 'Level ' + lv;
+      const status = focused.construction && focused.construction.key === k ? 'Building · ' + focused.construction.left + 'd' : lv >= 5 ? 'Maximum' : 'Level ' + lv;
       out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].icon + ' ' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Maximum level reached') + '</small></div>' + actionButton('Upgrade', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
     });
     out += '</div>';
@@ -933,8 +935,8 @@ function renderArmy(){
     const villages = ownTiles(0);
     const active = game.tiles[game.selected] && game.tiles[game.selected].owner === 0 ? game.tiles[game.selected] : villages[0];
     const isTown = game.villageMode === 'infrastructure';
-    $('scene-kicker').textContent = isTown ? 'BUILDINGS & DEFENSE' : 'CAMPOS DE RECURSOS';
-    $('scene-heading').textContent = (isTown ? 'Town center · ' : 'Terras de · ') + (active ? active.name : 'Reino perdido');
+    $('scene-kicker').textContent = isTown ? 'BUILDINGS & DEFENSE' : 'RESOURCE FIELDS';
+    $('scene-heading').textContent = (isTown ? 'Town center · ' : 'Fields of · ') + (active ? active.name : 'Lost Kingdom');
     if (!active) { $('scene-ground').innerHTML = '<p class="muted-note">You have no villages under your control.</p>'; return; }
     const positions = isTown ? [
       {key:'barracks',x:23,y:34},{key:'wall',x:78,y:34},{key:'market',x:50,y:80}
@@ -948,7 +950,7 @@ function renderArmy(){
     positions.forEach(function (p) {
       const lv = active.levels[p.key];
       const building = active.construction && active.construction.key === p.key;
-      out += '<button type="button" class="scene-slot ' + (game.buildingFocus === p.key ? 'active' : '') + '" data-building="' + p.key + '" data-action="focus-building" data-key="' + p.key + '" style="--x:' + p.x + '%;--y:' + p.y + '%" aria-label="' + short[p.key] + ', level ' + lv + ', mostrar melhoria">';
+      out += '<button type="button" class="scene-slot ' + (game.buildingFocus === p.key ? 'active' : '') + '" data-building="' + p.key + '" data-action="focus-building" data-key="' + p.key + '" style="--x:' + p.x + '%;--y:' + p.y + '%" aria-label="' + short[p.key] + ', level ' + lv + ', show upgrade">';
       out += '<span class="slot-icon" aria-hidden="true">' + icons[p.key] + '</span><span class="slot-name">' + short[p.key] + '</span><span class="slot-level">Level ' + lv + '</span>';
       if (building) out += '<span class="slot-queue">Em obras · ' + active.construction.left + 'd</span>';
       out += '</button>';
@@ -957,7 +959,7 @@ function renderArmy(){
     $('scene-ground').innerHTML = out;
   }
   function renderWorkspace() {
-    const titles = { village: ['VILLAGE UPGRADES', game.villageMode === 'production' ? 'Resource fields' : 'Buildings and defense'], map: ['THE CONTINENT', 'Province map'], army: ['MILITARY STRATEGY', 'Army and marches'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELTHE CONTINENT', 'Empire rankings'], reports: ['MILITARY REPORTS', '📜 Battle reports'], chronicle: ['LIVING HISTORY', 'World chronicle'] };
+    const titles = { village: ['VILLAGE UPGRADES', game.villageMode === 'production' ? 'Resource fields' : 'Buildings and defense'], map: ['THE CONTINENT', 'Province map'], army: ['MILITARY STRATEGY', 'Army and marches'], diplomacy: ['THRONES AND TREATIES', 'Diplomacy'], ranking: ['CONTINENTAL DOMINANCE', 'Empire rankings'], reports: ['MILITARY REPORTS', '📜 Battle reports'], chronicle: ['LIVING HISTORY', 'World chronicle'] };
     const item = titles[game.tab] || titles.village;
     $('workspace-kicker').textContent = item[0]; $('workspace-title').textContent = item[1];
     const layouts = { village: renderVillage, map: function () { return ''; }, army: renderArmy, diplomacy: renderDiplomacy, ranking: renderRanking, reports: renderReports, chronicle: renderChronicle };
@@ -1210,7 +1212,7 @@ function renderArmy(){
     if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); return; }
     if (btn.id === 'back-to-map') { game.tab = 'map'; refresh(); focusActiveView(); return; }
     if (btn.id === 'new-game') {
-      if (window.confirm('Start a new campaign? The current preview save will be replaced.')) {
+      if (window.confirm('Reset this campaign? Your progress in this strategy preview will be replaced. Your other versions will remain unchanged.')) {
         createGame(); refresh(); focusActiveView();
       }
     }
