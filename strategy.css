@@ -1,0 +1,36 @@
+
+/* Strategic Warfare — clearer tactical actions across mobile and desktop. */
+.militia-row{line-height:1.7}
+.militia-row strong{font-variant-numeric:tabular-nums}
+.province-body .garrison small{display:block;line-height:1.6;color:#707564}
+.province-body .incoming-alert{display:block;margin:10px 0;line-height:1.55}
+.province-body .action-stack .action-group{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.province-body .action-stack .action-group button{flex:1 1 138px;min-height:40px;white-space:normal}
+.province-body .action-stack .action-hint,.province-body .action-stack small{color:#656d56;font-size:11px;line-height:1.5}
+.province-body .action-subheading{margin:14px 0 8px}
+.unit-list .entry-actions{display:flex;flex-wrap:wrap;gap:6px}
+.unit-list .entry-actions button{min-height:38px;white-space:normal}
+.entry .pill{font-variant-numeric:tabular-nums}
+.entry .pill.war{color:#922f21}
+.entry .pill.pact{color:#426c35}
+.battle-report .militia-row{background:#f8f1df;border-radius:4px;padding:8px 10px;margin:7px 0}
+.battle-report .battle-summary{text-transform:capitalize}
+@media(max-width:800px){
+ .province-body .action-stack .action-group button{flex:1 1 calc(50% - 5px);font-size:11px;padding:10px 7px}
+ .unit-list .entry{align-items:flex-start}
+ .unit-list .entry-actions{flex:0 1 140px;justify-content:flex-end}
+ .unit-list .entry-actions .button{flex:1 1 auto;min-width:72px}
+ .battle-report .militia-row{font-size:11px}
+}
+@media(max-width:360px){
+ .province-body .action-stack .action-group button{flex-basis:100%}
+ .unit-list .entry{flex-direction:column;align-items:stretch}
+ .unit-list .entry-actions{flex:1 1 auto}
+ .unit-list .entry-actions .button{flex:1}
+}
+
+/* Deliberate reset action in the desktop menu and mobile More panel. */
+.navigation-strip .reset-campaign-button{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 13px;border:1px solid #bf8773;border-radius:7px;background:#fff5ee;color:#873d2c;font-size:12px;font-weight:700}
+.navigation-strip .reset-campaign-button:hover{background:#fce3d5}
+.navigation-strip .reset-campaign-button:focus-visible{outline:2px solid #873d2c;outline-offset:2px}
+@media(max-width:800px){.navigation-strip .reset-campaign-button{width:100%;min-height:44px}}

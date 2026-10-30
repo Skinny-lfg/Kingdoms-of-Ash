@@ -1,111 +1,113 @@
 <!doctype html>
-<html lang="pt-PT">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#333d2e">
-  <meta name="description" content="Kingdoms of Ash, estratégia single-player de economia, conquista e diplomacia.">
-  <title>Kingdoms of Ash — O Teu Reino</title>
+  <meta name="description" content="Kingdoms of Ash, single-player turn-based strategy: economy, conquest and diplomacy.">
+  <title>Kingdoms of Ash — Your Kingdom</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./travian-layout.css">
   <link rel="stylesheet" href="./mobile-layout.css">
-  <script src="./game.js" defer></script>
+  <link rel="stylesheet" href="./turns-reports.css?v=strategy-en-2">
+  <link rel="stylesheet" href="./strategy.css?v=strategy-en-2">
+  <script src="./game.js?v=strategy-en-2" defer></script>
 </head>
 <body>
   <div class="shell">
     <header class="masthead">
       <div class="brand">
         <div class="crest" aria-hidden="true">♜</div>
-        <div><p class="eyebrow">UM CONTINENTE POR CONQUISTAR</p><h1>KINGDOMS <span>OF ASH</span></h1></div>
+        <div><p class="eyebrow">A CONTINENT TO CONQUER</p><h1>KINGDOMS <span>OF ASH</span></h1></div>
       </div>
       <div class="campaign-status">
-        <span class="tiny-label">CAMPANHA SINGLE-PLAYER</span>
-        <strong id="day-label">Dia 1</strong>
-        <span id="phase-label" class="muted">A era dos pequenos reinos</span>
+        <span class="tiny-label">SINGLE-PLAYER CAMPAIGN</span>
+        <strong id="day-label">Turn 1</strong>
+        <span id="phase-label" class="muted">The Age of Small Kingdoms</span>
       </div>
-      <div class="time-controls" aria-label="Controlo do tempo">
-        <button id="time-pause" class="speed active" type="button" aria-label="Pausar o jogo">Ⅱ</button>
-        <button data-speed="1" class="speed" type="button">1×</button>
-        <button data-speed="5" class="speed" type="button">5×</button>
-        <button data-speed="20" class="speed" type="button">20×</button>
-        <button id="next-day" class="button subtle" type="button">+1 dia ↗</button>
+      <div class="time-controls" aria-label="Turn controls">
+        <span class="turn-caption">🎲 Play at your own pace</span>
+        <button id="next-day" class="button primary next-turn" type="button">⏭️ End turn</button>
       </div>
     </header>
 
-    <section class="resource-strip" id="resources" aria-label="Recursos do império"></section>
+    <section class="resource-strip" id="resources" aria-label="Empire resources"></section>
+    <section class="military-strip panel" id="military-strip" aria-label="Troops and incoming threats"></section>
 
     <section id="mobile-extra-nav" class="navigation-strip panel">
-      <nav id="nav" class="nav" aria-label="Navegação principal">
-        <button type="button" class="nav-button active" data-tab="village" data-mode="production"><span>🌾</span><b>Recursos</b></button>
-        <button type="button" class="nav-button" data-tab="village" data-mode="infrastructure"><span>🏘️</span><b>Aldeia</b></button>
-        <button type="button" class="nav-button" data-tab="map"><span>🗺️</span><b>Mapa</b></button>
-        <button type="button" class="nav-button" data-tab="army"><span>⚔️</span><b>Tropas</b></button>
-        <button type="button" class="nav-button" data-tab="diplomacy"><span>🤝</span><b>Diplomacia</b></button>
+      <nav id="nav" class="nav" aria-label="Main navigation">
+        <button type="button" class="nav-button active" data-tab="village" data-mode="production"><span>🌾</span><b>Fields</b></button>
+        <button type="button" class="nav-button" data-tab="village" data-mode="infrastructure"><span>🏘️</span><b>Village</b></button>
+        <button type="button" class="nav-button" data-tab="map"><span>🗺️</span><b>Map</b></button>
+        <button type="button" class="nav-button" data-tab="army"><span>⚔️</span><b>Army</b></button>
+        <button type="button" class="nav-button" data-tab="diplomacy"><span>🤝</span><b>Diplomacy</b></button>
         <button type="button" class="nav-button" data-tab="ranking"><span>🏆</span><b>Ranking</b></button>
-        <button type="button" class="nav-button" data-tab="chronicle"><span>📜</span><b>Relatórios</b></button>
+        <button type="button" class="nav-button" data-tab="reports"><span>📜</span><b>Reports</b><small id="report-badge" class="report-badge hidden" aria-label="Unread battle reports">0</small></button>
+        <button type="button" class="nav-button" data-tab="chronicle"><span>📖</span><b>Chronicle</b></button>
       </nav>
-      <div class="nav-actions"><button id="new-game" type="button" class="text-button">↻ Nova campanha</button></div>
+      <div class="nav-actions"><button id="new-game" type="button" class="text-button reset-campaign-button" title="Erase this preview campaign and start over">↻ Reset Campaign</button></div>
     </section>
 
     <div id="game-layout" class="game-layout">
       <main class="center-area">
-        <div class="mobile-village-switch" id="mobile-village-wrap"><label for="mobile-village-select">⌂ Aldeia</label><select id="mobile-village-select" aria-label="Selecionar aldeia"></select></div>
+        <div class="mobile-village-switch" id="mobile-village-wrap"><label for="mobile-village-select">⌂ Village</label><select id="mobile-village-select" aria-label="Select village"></select></div>
         <section class="village-scene panel" id="village-scene" aria-labelledby="scene-heading">
           <div class="section-header">
-            <div><p class="eyebrow" id="scene-kicker">CAMPOS DE PRODUÇÃO</p><h2 id="scene-heading">A tua aldeia</h2></div>
-            <span class="scene-mini-hint">Seleciona um campo ou edifício</span>
+            <div><p class="eyebrow" id="scene-kicker">RESOURCE FIELDS</p><h2 id="scene-heading">Your village</h2></div>
+            <span class="scene-mini-hint">Select a field or building</span>
           </div>
           <div id="scene-ground" class="scene-ground"></div>
-          <div class="scene-footnote">Os campos e edifícios representam os níveis de produção da aldeia selecionada.</div>
+          <div class="scene-footnote">Each field or building represents the production and defense level of your selected village.</div>
         </section>
 
         <section id="map-panel" class="map-panel panel" aria-labelledby="map-heading">
           <div class="section-header">
-            <div><p class="eyebrow">MUNDO · 40 PROVÍNCIAS</p><h2 id="map-heading">Mapa dos reinos</h2></div>
-            <div class="map-tools"><span class="map-map-icon">⌖</span><span>Escolhe um território</span></div>
+            <div><p class="eyebrow">WORLD · 40 PROVINCES</p><h2 id="map-heading">Kingdom map</h2></div>
+            <div class="map-tools"><span class="map-map-icon">⌖</span><span>Choose a territory</span></div>
           </div>
           <div class="map-viewport">
-            <div class="map-overlay">O CONTINENTE DE CINZA <span>✧</span> REGIÕES EM DISPUTA</div>
-            <div id="world-map" class="world-map" role="group" aria-label="Províncias do continente"></div>
+            <div class="map-overlay">THE ASHEN CONTINENT <span>✧</span> CONTESTED LANDS</div>
+            <div id="world-map" class="world-map" role="group" aria-label="Continent provinces"></div>
           </div>
           <div class="legend" id="map-legend"></div>
         </section>
 
         <section id="workspace" class="workspace panel" aria-labelledby="workspace-title">
           <div class="section-header workspace-header">
-            <div><p class="eyebrow" id="workspace-kicker">GESTÃO DO REINO</p><h2 id="workspace-title">Detalhes</h2></div>
-            <div class="workspace-tools"><button id="back-to-map" class="button small subtle" type="button">🗺️ Ver mapa</button><span class="workspace-mark" aria-hidden="true">✦</span></div>
+            <div><p class="eyebrow" id="workspace-kicker">KINGDOM MANAGEMENT</p><h2 id="workspace-title">Details</h2></div>
+            <div class="workspace-tools"><button id="back-to-map" class="button small subtle" type="button">🗺️ View map</button><span class="workspace-mark" aria-hidden="true">✦</span></div>
           </div>
           <div id="workspace-content"></div>
         </section>
       </main>
 
-      <aside class="right-area" aria-label="Informações do reino">
+      <aside class="right-area" aria-label="Kingdom information">
         <section class="panel villages-panel">
-          <div class="section-header small"><div><p class="eyebrow">O TEU DOMÍNIO</p><h2>Aldeias</h2></div><span class="seal" aria-hidden="true">♛</span></div>
+          <div class="section-header small"><div><p class="eyebrow">YOUR DOMAIN</p><h2>Villages</h2></div><span class="seal" aria-hidden="true">♛</span></div>
           <div id="village-list" class="village-picker"></div>
           <div id="empire-mini" class="empire-mini"></div>
         </section>
         <section class="panel intelligence">
-          <div class="section-header small"><div><p class="eyebrow">INFORMAÇÃO E AÇÕES</p><h2>Território selecionado</h2></div></div>
+          <div class="section-header small"><div><p class="eyebrow">INTELLIGENCE & ACTIONS</p><h2>Selected territory</h2></div></div>
           <div id="selected-province"></div>
         </section>
-        <section class="guidance panel" id="guidance" aria-label="Próximo passo recomendado"></section>
+        <section class="guidance panel" id="guidance" aria-label="Suggested next step"></section>
         <section class="panel dispatches">
-          <div class="section-header small"><div><p class="eyebrow">ACONTECIMENTOS</p><h2>Notícias do mundo</h2></div><button id="view-chronicle" class="text-button" type="button">Ver tudo ↗</button></div>
+          <div class="section-header small"><div><p class="eyebrow">EVENTS</p><h2>World news</h2></div><button id="view-chronicle" class="text-button" type="button">View all ↗</button></div>
           <div id="dispatch-list" aria-live="polite"></div>
         </section>
       </aside>
     </div>
 
-    <footer class="footline"><span>KINGDOMS OF ASH · UI V0.4</span><span>Inspirado na organização clássica dos jogos de estratégia de aldeias.</span></footer>
+    <footer class="footline"><span>KINGDOMS OF ASH · STRATEGIC WARFARE · ENGLISH PREVIEW</span><span>Build an empire, control your borders and choose when to end each turn.</span></footer>
   </div>
-  <nav class="mobile-bottom-nav" aria-label="Navegação rápida">
-    <button type="button" class="nav-button active" data-tab="village" data-mode="production"><span aria-hidden="true">🌾</span><b>Recursos</b></button>
-    <button type="button" class="nav-button" data-tab="village" data-mode="infrastructure"><span aria-hidden="true">🏘️</span><b>Aldeia</b></button>
-    <button type="button" class="nav-button" data-tab="map"><span aria-hidden="true">🗺️</span><b>Mapa</b></button>
-    <button type="button" class="nav-button" data-tab="army"><span aria-hidden="true">⚔️</span><b>Tropas</b></button>
-    <button type="button" id="mobile-more-toggle" aria-controls="nav" aria-expanded="false"><span aria-hidden="true">☰</span><b>Mais</b></button>
+  <nav class="mobile-bottom-nav" aria-label="Quick navigation">
+    <button type="button" class="nav-button active" data-tab="village" data-mode="production"><span aria-hidden="true">🌾</span><b>Fields</b></button>
+    <button type="button" class="nav-button" data-tab="village" data-mode="infrastructure"><span aria-hidden="true">🏘️</span><b>Village</b></button>
+    <button type="button" class="nav-button" data-tab="map"><span aria-hidden="true">🗺️</span><b>Map</b></button>
+    <button type="button" class="nav-button" data-tab="army"><span aria-hidden="true">⚔️</span><b>Army</b></button>
+    <button type="button" id="mobile-more-toggle" aria-controls="nav" aria-expanded="false"><span aria-hidden="true">☰</span><b>More</b></button>
+    <button type="button" id="mobile-next-turn" data-action="end-turn" aria-label="End your turn and advance one day" title="End turn"><span aria-hidden="true">⏭️</span><b id="mobile-turn-label">Turn 1</b></button>
   </nav>
   <div id="event-layer" class="event-layer hidden" role="presentation"></div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>

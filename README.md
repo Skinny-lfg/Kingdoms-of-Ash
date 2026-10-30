@@ -1,101 +1,28 @@
-# Kingdoms of Ash
+# Kingdoms of Ash — Strategic Warfare (English)
 
-**Kingdoms of Ash** é um protótipo jogável de estratégia **single-player** inspirado na sensação de um servidor de Travian: desenvolver economia, recrutar exércitos, disputar o ranking, negociar e observar impérios rivais a agir por iniciativa própria.
+A playable single-player, turn-based strategy prototype inspired by the decisions in classic village strategy games. All in-game menus, names, instructions and battle reports are in English.
 
-> Versão **v0.1 — The Ashen Continent**. Interface em português de Portugal. Sem backend, conta, multiplayer, anúncios, serviços pagos ou dependências JavaScript externas. Não é uma cópia de ativos, código ou interface do Travian.
+## Playing
+Open `index.html` or use the GitHub Pages preview under `/strategy/`. The game never advances by itself. Click **End turn** to move production, construction, armies, diplomacy and rival plans forward by one turn. On mobile, the fixed green button shows the current turn.
 
-## Jogar
+The main navigation is **Fields → Village → Map → Army → Diplomacy → Ranking → Reports → Chronicle**. Clicking a resource field or a town-center building opens the corresponding upgrade. Every village can have its own garrison.
 
-1. Abre [index.html](./index.html) num navegador moderno. Basta abrir o ficheiro; não é necessário compilar.
-2. Em alternativa, a partir da pasta do projeto, inicia um servidor local com `python3 -m http.server 8080` e visita `http://localhost:8080`.
-3. O jogo começa **em pausa**. Usa **+1 dia** para avançar manualmente ou escolhe **1×**, **5×** ou **20×**. A barra de espaço alterna entre pausa e 1× quando não estás a interagir com um botão.
-4. Seleciona províncias no mapa para fundar aldeias, enviar incursões ou tentar conquistar. Consulta as abas Aldeias, Exército, Diplomacia, Ranking e Crónicas.
+## Strategic gameplay
+- **Raids:** neutral farmsteads, merchant caravans, bandit camps and wilderness have finite resource stocks. Stocks regenerate; caravans relocate every six turns. Raids favor low casualties and return only as much loot as the surviving army can carry. Battle reports show estimated net gains after troop replacement costs; the Army view keeps a raid-profit ledger.
+- **Armies:** troops recruit into the global *mobile reserve*. Station them in a village to defend it; withdraw to use them for field operations. Send up to half a stationed garrison as reinforcements to another owned village; troops arrive after travel time.
+- **Defenses:** prepare temporary fortifications, lay ambushes in forests, or evacuate troops and protect stores when a major attack is imminent. Incoming enemy armies show estimated arrival turns, allowing a reaction. Counterattack the origin of an incoming enemy army while it is away.
+- **Attack tactics:** **Raid** steals resources and seeks safe withdrawals; **Attack** damages opposing forces without taking resources; **Siege** uses catapults and extra preparation time to attempt conquest. Surviving defenders retreat to reserve after a captured village falls.
+- **Scouting:** spend wood and grain to reveal local guards/garrisons and resource estimates for four turns. Scouting enemy villages also reveals known AI plans in Diplomacy.
+- **Strategic map:** mountains improve defense, forests favor defense/ambush, plains help cavalry, strategic passes give ranking value, and distant supply lines reduce attacking strength.
+- **Diplomacy:** non-aggression pacts and alliances influence income; nearby allies add a modest defensive bonus. Gifts, war, peace and support remain available.
+- **Rival AI:** five rival personalities can form multi-turn expansion, defensive and offensive plans, reinforce threatened capitals, and retaliate. They operate within their own resource constraints, using the same movement and attack rules.
+- **Reports:** exact participating soldiers by class, survivors, casualties, terrain/supply modifiers, looted resources, carrying capacity and net-raiding estimates are retained in your local save.
 
-A gravação é automática via `localStorage`, **apenas neste navegador e dispositivo**. Ao reabrir o jogo, a simulação permanece em pausa. O botão **Nova campanha** substitui o save após confirmação.
+## Saved campaigns
+This preview saves to `kingdoms-of-ash-strategy-en` in browser localStorage. It can import saves from previous versions without overwriting those older save slots. A migrated game may have unassigned reserve troops; open the Army tab and station troops for real village defense.
 
-## Interface v0.3 — organização clássica de aldeia (inspirada em Travian)
+## Tests
+Run `node --test` in the repository root. Tests cover economy, farming, reinforcements, garrisons, siege, reconnaissance, migration, defense, English UI and repeated AI turns.
 
-A interface passou a seguir a navegação familiar dos jogos de aldeia:
-
-- **Recursos:** vista ilustrativa dos quatro grupos de campos, com níveis reais e escolha de melhorias.
-- **Aldeia:** vista do centro com quartel, paliçada e mercado, ligada às mesmas construções reais.
-- **Mapa:** vista separada do continente, para selecionar territórios, colonizar, atacar e conquistar.
-- **Tropas, Diplomacia, Ranking e Relatórios:** ecrãs dedicados, acessíveis pela barra superior.
-- **Coluna direita:** lista de aldeias, dados do território selecionado, ações e notícias.
-- **Recursos e tempo:** sempre visíveis no topo do ecrã.
-
-Esta é uma **adaptação de organização e fluxo**, não uma reprodução dos gráficos, logótipos, ilustrações ou código do Travian. As ilustrações do centro são marcadores originais em CSS/emoji; serão substituídas por arte própria do jogo numa fase seguinte.
-
-**Compatibilidade:** o save anterior mantém-se. O jogo continua sem backend nem mudanças na economia, combate, IA ou diplomacia. O novo separador Mapa também pode ser aberto diretamente pelo menu superior.
-
-## Navegação simplificada (atualização UX)
-
-- O menu **Aldeias · Exército · Diplomacia · Ranking · Crónicas** fica horizontal, libertando espaço para o mapa.
-- O cartão **O que fazer a seguir** sugere os primeiros três objetivos (melhorar produção, recrutar tropas e fundar outra aldeia), sem gastar recursos automaticamente.
-- **Clica num território no mapa:** a ficha mostra apenas as ações adequadas. Aldeia tua: produção, edifícios/defesa e recrutamento. Terreno neutro: colonização e pilhagem. Reino rival: diplomacia, saque e conquista.
-- As construções estão separadas em **Produção** e **Edifícios e defesa**, sem alterar as regras de construção.
-- No telemóvel, o painel de ações surge imediatamente abaixo do mapa; **Voltar ao mapa** regressa à escolha de territórios.
-- O progresso guardado na v0.1 continua válido. Nenhuma ação de navegação consome recursos; os botões que gastam recursos continuam explícitos.
-
-## O que já está implementado
-
-- **Mapa:** 40 províncias, com terreno, especializações de produção e fronteiras controladas por seis facções (tu + cinco governantes rivais).
-- **Economia:** madeira, barro, ferro e cereais; produção diária por aldeia, consumo de cereais das tropas e sete melhorias locais com custos e tempo de construção.
-- **Expansão:** colonização de províncias neutras dentro de três espaços de uma aldeia tua; preço que aumenta à medida que o império cresce; colonos sujeitos a tempo de viagem e concorrência pelo território.
-- **Exército:** lanceiros, espadachins, cavaleiros e catapultas; recrutamento com custos; tropas em trânsito, perdas, defesas, pilhagem, regresso e conquistas com catapultas.
-- **Diplomacia:** relações e opiniões persistentes; presentes, pactos de não agressão, alianças, pedidos de apoio, paz e guerra. As fações rivais também assinam pactos, formam alianças e declaram guerras entre si.
-- **Rivais simulados:** cinco estilos (agressivo, economista, diplomata, oportunista e defensivo) que produzem, gastam, melhoram aldeias, colonizam e podem combater. Não recebem tropas nem recursos gratuitos para manter a aparência de competição.
-- **Ranking:** pontuação calculada a partir de território, população, exército e recursos; varia com as ações de todos os governantes.
-- **Eventos:** ultimatos diplomáticos interrompem o avanço do tempo e exigem uma escolha.
-- **Condição de vitória:** liderar o ranking com pelo menos **10 aldeias** durante **4 dias consecutivos**. Os rivais também podem ganhar; perdes caso fiques sem aldeias.
-- **História emergente:** registo de colonizações, acordos, conflitos, conquistas e perdas.
-
-## Regras e atalhos
-
-| Ação | Regra |
-| --- | --- |
-| Colonização | Alvo neutro a até 3 espaços da tua aldeia mais próxima; custa recursos e demora dias |
-| Construção | Uma obra de cada vez por aldeia; melhorias de recursos demoram 2 dias, quartel 3 |
-| Recrutamento | Lotes de 5; cavaleiros exigem quartel 2 e catapultas quartel 3 |
-| Incursão | Envia 25–100% das tropas disponíveis; resultado depende de ataque, defesa e terreno |
-| Conquista | Exige atacar uma aldeia rival, sobreviver com pelo menos 2 catapultas e vencer decisivamente |
-| Acordo diplomático | Impede atacar aliados ou fações com pacto; podes romper o acordo ou declarar guerra |
-| Apoio aliado | Depois de uma aliança, podes pedir uma pequena ajuda de recursos e lanceiros, com tempo de recuperação |
-| Tempo | Dia ≈ 16 segundos a 1×, 3,2 segundos a 5×, 0,8 segundos a 20×; campanha parada enquanto está fechada |
-
-## Estrutura
-
-- `index.html` — ecrãs, painéis e estrutura da interface
-- `styles.css` — estilo dark fantasy responsivo, mapa, grelha e controlos
-- `game.js` — estado, regras, economia, combates, diplomacia, IA, renderização e save
-- `tests/smoke.test.cjs` — testes de regressão sem dependências externas
-
-## Executar testes
-
-Requer **Node.js 18+**:
-
-```sh
-node --test
-```
-
-Os testes cobrem mapa inicial, fundação, construções, recrutamento, ataques, diplomacia, avanço de rivais, integridade dos recursos e recuperação do save.
-
-## Limitações conscientes desta versão
-
-Esta é uma **primeira experiência jogável**, não um clone completo nem um jogo terminado. Ainda simplifica:
-
-- Os recursos de todas as aldeias do mesmo império são agregados num tesouro comum, em vez de haver armazéns e mercados separados.
-- As unidades militares disponíveis são geridas ao nível do império e a defesa divide-as abstratamente pelas aldeias; não há guarnições ou reforços com trajetos individuais.
-- Diplomacia por regras, não por modelos generativos; alianças dão acesso a apoio, mas ainda não planeiam ataques conjuntos.
-- As catapultas permitem conquistar, mas ainda não escolhem edifícios a destruir; não existem fakes ou ataques sincronizados.
-- Não existem tribos alternativas, exploradores, Maravilha do Mundo, replay/export de saves, dificuldade selecionável nem interface de tutorial completo.
-- A IA usa heurísticas transparentes, não modelos de aprendizagem; os diferentes estilos ainda precisam de mais afinação de equilíbrio.
-- Algumas ações de protótipo, como o recrutamento, são imediatas após o pagamento. Isso será revisto depois dos testes de diversão.
-
-## Próximo checkpoint de desenvolvimento
-
-**v0.2 — A guerra tem consequências:** defesa distribuída por aldeia, reforços com tempos reais, espionagem, catapultas por alvo, coordenação de ataques, perdas e recuperação de exércitos, melhor leitura dos relatórios e ajuste da dificuldade. Só depois vale a pena expandir as facções e o mapa.
-
-## Filosofia de design
-
-O mundo não espera pelo jogador **enquanto a campanha está a decorrer**, mas também não te pune por fechar o jogo. Os rivais devem crescer, reagir e poder vencer com as mesmas restrições económicas. O objetivo é preservar o conflito entre quatro decisões: **crescer, combater, competir e negociar**.
+## Current design limits
+The prototype still shares a single imperial treasury instead of individual village warehouses. Armies on the map are simulated as missions rather than movable battlefield pieces. Enemy diplomatic and military behavior is heuristic, not a full planning AI. Numbers are provisional and should be balanced after hands-on playtests.
