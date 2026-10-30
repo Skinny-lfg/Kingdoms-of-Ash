@@ -596,12 +596,12 @@
     $('guidance').innerHTML = '<div class="guidance-copy"><p class="eyebrow">O QUE FAZER A SEGUIR</p><strong>' + title + '</strong><p>' + detail + '</p></div><div class="guidance-actions">' + actionButton(label + ' ↗', action, '', 'primary') + '</div>';
   }
   function focusWorkspace() {
-    const node = document.querySelector('.workspace');
+    const node = typeof document.querySelector === 'function' ? document.querySelector('.workspace') : null;
     if (node && typeof node.scrollIntoView === 'function') node.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   function focusSelection() {
     if (typeof window.innerWidth !== 'number' || window.innerWidth > 900) return;
-    const node = document.querySelector('.intelligence');
+    const node = typeof document.querySelector === 'function' ? document.querySelector('.intelligence') : null;
     if (node && typeof node.scrollIntoView === 'function') node.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   function navigateTo(tab, mode, target) {
@@ -651,7 +651,7 @@
     const tileId = btn.dataset.tile !== undefined ? Number(btn.dataset.tile) : game.selected;
     const factionId = Number(btn.dataset.faction);
     if (action === 'restart') { createGame(); refresh(); return; }
-    if (game.ended) return;
+    if (game.ended && action !== 'open-ranking') return;
     let scrollTo = '';
     if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'workspace'; }
     else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; }
