@@ -705,7 +705,7 @@ function produceAndBuild() {
         (danger ? ' tile-threat' : '') + '"' + style + ' type="button" data-tile="' + t.id +
         '" aria-pressed="' + (t.id === game.selected) + '" title="' + t.name + ' — ' + (f ? f.name : 'Neutral lands') +
         '"><span class="tile-symbol">' + symbol + '</span><span class="tile-terrain" title="' + TERRAIN[t.terrain].label + '">' + TERRAIN[t.terrain].icon +
-        '</span><span class="tile-name">' + t.name + '</span><span class="tile-level">' + (f ? 'Nv. ' + (t.levels.wood + t.levels.clay + t.levels.iron + t.levels.grain) : '•') +
+        '</span><span class="tile-name">' + t.name + '</span><span class="tile-level">' + (f ? 'Lv. ' + (t.levels.wood + t.levels.clay + t.levels.iron + t.levels.grain) : '•') +
         '</span>' + (f ? '<span class="tile-marker">' + f.short + '</span>' : '') +
         (status ? '<span class="tile-status">' + status + '</span>' : '') + '</button>';
     }).join('');
