@@ -371,3 +371,20 @@ test('mobile: botão fixo de turno avança exatamente um dia e respeita eventos'
   blocked.click({}, 'mobile-next-turn');
   assert.equal(blocked.state().day, 3);
 });
+
+test('o botão mobile usa a ação explícita e mostra o turno atual', () => {
+  const g = startGame();
+  assert.equal(g.state().day, 1);
+  g.click({ action: 'end-turn' }, 'mobile-next-turn');
+  assert.equal(g.state().day, 2);
+  g.click({ action: 'end-turn' }, 'mobile-next-turn');
+  assert.equal(g.state().day, 3);
+  g.click({}, 'next-day');
+  assert.equal(g.state().day, 4);
+  const event = g.state();
+  event.event = { type: 'ultimatum', faction: 1 };
+  g.store.set('kingdoms-of-ash-v04', JSON.stringify(event));
+  const blocked = startGame(g.store);
+  blocked.click({ action: 'end-turn' }, 'mobile-next-turn');
+  assert.equal(blocked.state().day, 4);
+});
