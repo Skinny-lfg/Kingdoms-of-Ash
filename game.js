@@ -478,23 +478,17 @@
     const villages = ownTiles(0);
     const focused = game.tiles[game.selected].owner === 0 ? game.tiles[game.selected] : villages[0];
     if (!focused) return '<div class="workspace-body"><p class="muted-note">O teu império não tem aldeias.</p></div>';
-    let out = '<div class="workspace-body"><p class="section-intro">Melhora a tua aldeia para crescer. Os recursos das aldeias são partilhados pelo império.</p>';
+    let out = '<div class="workspace-body"><p class="section-intro">Clica num campo ou edifício acima para escolher a melhoria. Cada aldeia tem uma obra de cada vez; os recursos pertencem ao tesouro do teu império.</p>';
     out += '<div class="stat-grid"><div class="stat-card"><span>Aldeias</span><strong>' + villages.length + '</strong></div><div class="stat-card"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="stat-card"><span>Produção total</span><strong>' + format(RES.reduce(function (n, r) { return n + Math.max(0, income(0)[r.key]); }, 0)) + '</strong></div></div>';
     out += '<h3 class="subheading">Aldeia ativa — ' + focused.name + '</h3>';
-    out += '<div class="village-tabs" role="group" aria-label="Tipo de construção">';
-    out += actionButton('❋ Produção', 'village-mode', 'data-mode="production" aria-pressed="' + (game.villageMode === 'production') + '"', game.villageMode === 'production' ? 'active' : 'subtle');
-    out += actionButton('⚒ Edifícios e defesa', 'village-mode', 'data-mode="infrastructure" aria-pressed="' + (game.villageMode === 'infrastructure') + '"', game.villageMode === 'infrastructure' ? 'active' : 'subtle');
-    out += '</div><div class="building-list">';
+    out += '<div class="building-list">';
     Object.keys(BUILDINGS).filter(function (k) { return game.villageMode === 'infrastructure' ? !['wood','clay','iron','grain'].includes(k) : ['wood','clay','iron','grain'].includes(k); }).sort(function (a, b) { return (a === game.buildingFocus ? -1 : b === game.buildingFocus ? 1 : 0); }).forEach(function (k) {
       const lv = focused.levels[k]; const cost = buildingCost(focused, k);
       const can = !focused.construction && lv < 5 && canAfford(0, cost);
       const status = focused.construction && focused.construction.key === k ? 'Em obras · ' + focused.construction.left + 'd' : lv >= 5 ? 'Máximo' : 'Nível ' + lv;
       out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Nível máximo atingido') + '</small></div>' + actionButton('Melhorar', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
     });
-    out += '</div><h3 class="subheading">As tuas províncias</h3><div class="building-list">';
-    villages.forEach(function (t) {
-      out += '<div class="entry"><div><strong>' + t.name + '</strong><small>' + TERRAIN[t.terrain].label + (t.construction ? ' · ' + BUILDINGS[t.construction.key].label + ' em obras' : '') + '</small></div>' + actionButton('Selecionar', 'select', 'data-tile="' + t.id + '"', 'small', focused.id === t.id) + '</div>';
-    });
+    out += '</div>';
     return out + '</div></div>';
   }
   function renderArmy() {
