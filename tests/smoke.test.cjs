@@ -389,3 +389,137 @@ test('o botão mobile usa a ação explícita e mostra o turno atual', () => {
   blocked.click({ action: 'end-turn' }, 'mobile-next-turn');
   assert.equal(blocked.state().day, 4);
 });
+
+
+const STRATEGY_KEY = 'kingdoms-of-ash-strategy-en';
+function armySum(t) { return Object.values(t).reduce((a,b)=>a+b,0); }
+function resourceSum(t) { return Object.values(t).reduce((a,b)=>a+b,0); }
+function reloadWithState(state) {
+  const store = new Map([[STRATEGY_KEY,JSON.stringify(state)]]);
+  return startGame(store);
+}
+
+test('strategy: English map, initial garrison and reserve are distinct and conserved', () => {
+  const g=startGame(),s=g.state();
+  assert.equal(s.version,3);
+  assert.equal(s.tiles[19].name,'Ashheart');
+  assert.equal(s.factions[0].name,'Ashen Crown');
+  assert.equal(s.tiles[19].garrison.spear,8);
+  assert.equal(s.tiles[19].garrison.sword,4);
+  assert.equal(s.factions[0].troops.spear+s.tiles[19].garrison.spear,16);
+  assert.equal(s.factions[0].troops.sword+s.tiles[19].garrison.sword,10);
+  assert.ok(g.html('scene-ground').includes('Fields and production'));
+  assert.ok(g.html('military-strip').includes('Available reserves'));
+  assert.equal(g.state().day,1);
+});
+
+test('strategy: station and withdraw troops without duplicating armies', () => {
+  const g=startGame();
+  const before=armySum(g.state().factions[0].troops)+armySum(g.state().tiles[19].garrison);
+  g.click({ action:'station',tile:'19',unit:'spear' });
+  assert.equal(g.state().tiles[19].garrison.spear,13);
+  g.click({ action:'withdraw',tile:'19',unit:'spear' });
+  assert.equal(g.state().tiles[19].garrison.spear,8);
+  const after=armySum(g.state().factions[0].troops)+armySum(g.state().tiles[19].garrison);
+  assert.equal(after,before);
+  assert.equal(g.state().day,1);
+});
+
+test('strategy: fortification, forest ambush and evacuation cost resources', () => {
+  const g=startGame(),before=g.state().factions[0].resources;
+  g.click({ action:'fortify',tile:'19' });
+  assert.ok(g.state().tiles[19].fortifyUntil>=3);
+  assert.ok(g.state().factions[0].resources.wood<before.wood);
+  g.click({ action:'ambush',tile:'19' });
+  assert.ok(g.state().tiles[19].ambushUntil>=3);
+  const guard=armySum(g.state().tiles[19].garrison);
+  g.click({ action:'evacuate',tile:'19' });
+  assert.equal(armySum(g.state().tiles[19].garrison),0);
+  assert.ok(armySum(g.state().factions[0].troops)>=guard);
+  assert.ok(g.state().tiles[19].evacuateUntil>=3);
+  assert.equal(g.state().day,1);
+});
+
+test('strategy: farming raid yields replenishable finite loot, limited by carrying capacity', () => {
+  const g=startGame(),stock=resourceSum(g.state().tiles[20].stock);
+  g.click({ tile:'20' });g.click({ action:'raid' });
+  assert.equal(g.state().missions[0].mode,'raid');
+  g.advance();
+  const s=g.state(),r=s.reports[0];
+  assert.equal(r.mode,'raid');
+  assert.equal(r.attacker,0);
+  assert.ok(r.victory);
+  assert.ok(resourceSum(r.loot)>0);
+  assert.ok(resourceSum(r.loot)<=r.carryCapacity);
+  assert.ok(resourceSum(s.tiles[20].stock)<stock+90);
+  assert.ok(g.html('workspace-content').includes('Village') || g.html('workspace-content').length>0);
+  const before=s.tiles[20].stock.wood;
+  g.advance();
+  assert.ok(g.state().tiles[20].stock.wood>=before);
+  g.click({ tab:'army' });
+  assert.ok(g.html('workspace-content').includes('Raid profitability'));
+});
+
+test('strategy: station and reinforce a second village with travel time', () => {
+  const g=startGame();g.click({tile:'20'});g.click({action:'settle'});g.advance();
+  g.click({action:'select',tile:'19'});
+  g.click({action:'reinforce',from:'19',to:'20'});
+  const m=g.state().missions.find(x=>x.mode==='reinforce');
+  assert.ok(m);assert.equal(m.origin,19);assert.equal(m.tile,20);
+  const before=armySum(g.state().tiles[20].garrison);
+  g.advance();
+  assert.ok(armySum(g.state().tiles[20].garrison)>before);
+  assert.equal(g.state().missions.filter(x=>x.mode==='reinforce').length,0);
+});
+
+test('strategy: reconnaissance reveals neutral resource stores, before hidden', () => {
+  const g=startGame();
+  g.click({tile:'20'});
+  assert.ok(g.html('selected-province').includes('Unknown (scout to reveal)'));
+  const before=g.state().factions[0].resources.wood;
+  g.click({action:'scout'});
+  assert.ok(g.state().tiles[20].scoutUntil>=4);
+  assert.ok(g.html('selected-province').includes('Scout intelligence'));
+  assert.ok(g.state().factions[0].resources.wood<before);
+});
+
+test('strategy: field attack targets defenders and does not mint raid loot', () => {
+  const g=startGame();g.click({tile:'20'});g.click({action:'attack'});g.advance();
+  const r=g.state().reports[0];
+  assert.equal(r.mode,'attack');assert.equal(resourceSum(r.loot),0);
+  for(const key of ['spear','sword','rider','siege'])
+    assert.equal(r.attackers.sent[key],r.attackers.survived[key]+r.attackers.lost[key]);
+});
+
+test('strategy: successful siege transfers the province and retreats surviving defenders', () => {
+  const base=startGame().state();base.tiles[20].owner=1;base.tiles[20].militia=0;
+  base.tiles[20].garrison={spear:3,sword:0,rider:0,siege:0};
+  base.factions[0].troops={spear:40,sword:90,rider:15,siege:5};
+  const g=reloadWithState(base);g.click({tile:'20'});g.click({action:'siege'});
+  assert.ok(g.state().missions.some(m=>m.mode==='siege'));
+  g.advance();g.advance();
+  assert.equal(g.state().tiles[20].owner,0);
+  assert.ok(g.state().reports.some(r=>r.conquered&&r.mode==='siege'));
+});
+
+test('strategy: 80-turn simulation preserves non-negative stocks, armies and garrisons', () => {
+  const g=startGame();
+  for(let day=0;day<80;day++){
+    clearEvent(g);g.advance();const s=g.state();
+    assert.ok(s.factions.every(f=>Object.values(f.resources).every(n=>Number.isFinite(n)&&n>=0)));
+    assert.ok(s.tiles.every(t=>Object.values(t.garrison).every(n=>Number.isInteger(n)&&n>=0)));
+    assert.ok(s.tiles.every(t=>Object.values(t.stock).every(n=>Number.isFinite(n)&&n>=0)));
+    assert.ok(s.missions.every(m=>!m.troops||Object.values(m.troops).every(n=>Number.isInteger(n)&&n>=0)));
+    if(s.ended)break;
+  }
+});
+
+test('strategy: caravan locations shift during the campaign', () => {
+  const g=startGame();
+  const original=g.state().tiles.filter(t=>t.owner<0&&t.site==='caravan').map(t=>t.id);
+  for(let i=0;i<5;i++){clearEvent(g);g.advance();}
+  const next=g.state().tiles.filter(t=>t.owner<0&&t.site==='caravan').map(t=>t.id);
+  assert.ok(original.length>0);
+  assert.ok(next.length>0);
+  assert.ok(original.some(id=>!next.includes(id)));
+});
