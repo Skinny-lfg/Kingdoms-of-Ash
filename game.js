@@ -762,16 +762,16 @@ function renderSelected(){
   function renderVillage() {
     const villages = ownTiles(0);
     const focused = game.tiles[game.selected].owner === 0 ? game.tiles[game.selected] : villages[0];
-    if (!focused) return '<div class="workspace-body"><p class="muted-note">O teu império não tem aldeias.</p></div>';
-    let out = '<div class="workspace-body"><p class="section-intro">Clica num campo ou edifício acima para escolher a melhoria. Cada aldeia tem uma obra de cada vez; os recursos pertencem ao tesouro do teu império.</p>';
-    out += '<div class="stat-grid"><div class="stat-card"><span>Aldeias</span><strong>' + villages.length + '</strong></div><div class="stat-card"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="stat-card"><span>Produção total</span><strong>' + format(RES.reduce(function (n, r) { return n + Math.max(0, income(0)[r.key]); }, 0)) + '</strong></div></div>';
-    out += '<h3 class="subheading">Aldeia ativa — ' + focused.name + '</h3>';
+    if (!focused) return '<div class="workspace-body"><p class="muted-note">Your empire has no villages.</p></div>';
+    let out = '<div class="workspace-body"><p class="section-intro">Choose a field or building above to upgrade it. Each village has one build queue and empire resources are shared.</p>';
+    out += '<div class="stat-grid"><div class="stat-card"><span>Villages</span><strong>' + villages.length + '</strong></div><div class="stat-card"><span>Population</span><strong>' + format(population(0)) + '</strong></div><div class="stat-card"><span>Total production</span><strong>' + format(RES.reduce(function (n, r) { return n + Math.max(0, income(0)[r.key]); }, 0)) + '</strong></div></div>';
+    out += '<h3 class="subheading">Active village — ' + focused.name + '</h3>';
     out += '<div class="building-list">';
     Object.keys(BUILDINGS).filter(function (k) { return game.villageMode === 'infrastructure' ? !['wood','clay','iron','grain'].includes(k) : ['wood','clay','iron','grain'].includes(k); }).sort(function (a, b) { return (a === game.buildingFocus ? -1 : b === game.buildingFocus ? 1 : 0); }).forEach(function (k) {
       const lv = focused.levels[k]; const cost = buildingCost(focused, k);
       const can = !focused.construction && lv < 5 && canAfford(0, cost);
-      const status = focused.construction && focused.construction.key === k ? 'Em obras · ' + focused.construction.left + 'd' : lv >= 5 ? 'Máximo' : 'Nível ' + lv;
-      out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].icon + ' ' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Nível máximo atingido') + '</small></div>' + actionButton('Melhorar', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
+      const status = focused.construction && focused.construction.key === k ? 'Em obras · ' + focused.construction.left + 'd' : lv >= 5 ? 'Maximum' : 'Level ' + lv;
+      out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].icon + ' ' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Maximum level reached') + '</small></div>' + actionButton('Upgrade', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
     });
     out += '</div>';
     return out + '</div></div>';
@@ -817,29 +817,29 @@ function renderArmy(){
  return out+'</div></div>';
 }
 
-  function stanceName(stance) { return { neutral: 'Neutral', pact: 'Não agressão', alliance: 'Alliance', war: 'Em guerra' }[stance] || stance; }
+  function stanceName(stance) { return { neutral: 'Neutral', pact: 'Non-aggression pact', alliance: 'Alliance', war: 'At war' }[stance] || stance; }
   function renderDiplomacy() {
-    let out = '<div class="workspace-body"><p class="section-intro">Uma aliança protege fronteiras e permite pedir apoio. Presentes melhoram relações, mas rivais poderosos também podem ameaçar-te.</p><div class="diplomacy-list">';
+    let out = '<div class="workspace-body"><p class="section-intro">Alliances help protect your borders and allow support. Gifts improve relations, but strong rivals can still threaten you.</p><div class="diplomacy-list">';
     game.factions.slice(1).forEach(function (f) {
       const r = relation(0, f.id);
-      out += '<div class="entry"><div><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong> <span class="pill ' + (r.stance === 'war' ? 'war' : r.stance === 'neutral' ? 'neutral' : 'pact') + '">' + stanceName(r.stance) + '</span><small>Opinião ' + r.opinion + ' · ' + ownTiles(f.id).length + ' aldeias · Poder ' + format(armyPower(f.troops)) + '<br>Perfil: ' + ({ aggressive: 'Agressivo', economic: 'Economista', diplomatic: 'Diplomata', opportunist: 'Oportunista', defensive: 'Defensivo' }[f.style]) + '</small></div><div class="entry-actions">';
-      out += actionButton('Presente', 'gift', 'data-faction="' + f.id + '"', 'small', !canAfford(0, { wood: 70, grain: 70 }) || r.stance === 'war');
-      if (r.stance === 'neutral') out += actionButton('Propor pacto', 'pact', 'data-faction="' + f.id + '"', 'small');
-      if (r.stance === 'pact') out += actionButton('Propor aliança', 'alliance', 'data-faction="' + f.id + '"', 'small');
-      if (r.stance === 'alliance') out += actionButton('Pedir apoio', 'aid', 'data-faction="' + f.id + '"', 'small');
-      if (r.stance === 'war') out += actionButton('Propor paz', 'peace', 'data-faction="' + f.id + '"', 'small');
-      else out += actionButton(r.stance === 'neutral' ? 'Declarar guerra' : 'Romper acordo', r.stance === 'neutral' ? 'war' : 'break', 'data-faction="' + f.id + '"', 'small danger');
+      out += '<div class="entry"><div><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong> <span class="pill ' + (r.stance === 'war' ? 'war' : r.stance === 'neutral' ? 'neutral' : 'pact') + '">' + stanceName(r.stance) + '</span><small>Opinion ' + r.opinion + ' · ' + ownTiles(f.id).length + ' villages · Power ' + format(armyPower(f.troops)) + '<br>Personality: ' + ({ aggressive: 'Aggressive', economic: 'Economic', diplomatic: 'Diplomatic', opportunist: 'Opportunist', defensive: 'Defensive' }[f.style]) + '</small></div><div class="entry-actions">';
+      out += actionButton('Gift', 'gift', 'data-faction="' + f.id + '"', 'small', !canAfford(0, { wood: 70, grain: 70 }) || r.stance === 'war');
+      if (r.stance === 'neutral') out += actionButton('Offer pact', 'pact', 'data-faction="' + f.id + '"', 'small');
+      if (r.stance === 'pact') out += actionButton('Offer alliance', 'alliance', 'data-faction="' + f.id + '"', 'small');
+      if (r.stance === 'alliance') out += actionButton('Request aid', 'aid', 'data-faction="' + f.id + '"', 'small');
+      if (r.stance === 'war') out += actionButton('Offer peace', 'peace', 'data-faction="' + f.id + '"', 'small');
+      else out += actionButton(r.stance === 'neutral' ? 'Declare war' : 'Romper acordo', r.stance === 'neutral' ? 'war' : 'break', 'data-faction="' + f.id + '"', 'small danger');
       out += '</div></div>';
     });
     return out + '</div></div>';
   }
   function renderRanking() {
-    let out = '<div class="workspace-body"><p class="section-intro">Classificação dinâmica: aldeias, população, força militar e economia. Para vencer, lidera com pelo menos 10 aldeias durante quatro dias consecutivos.</p><div class="rank-list"><div class="rank-row heading"><span>#</span><span>Império</span><span class="num">Aldeias</span><span class="num">Pontos</span></div>';
+    let out = '<div class="workspace-body"><p class="section-intro">Dynamic rankings reward villages, population, military strength, resources and strategic passes. Lead the table with at least 10 villages for four turns to win.</p><div class="rank-list"><div class="rank-row heading"><span>#</span><span>Império</span><span class="num">Villages</span><span class="num">Pontos</span></div>';
     ranking().forEach(function (f, i) {
       out += '<div class="rank-row' + (f.id === 0 ? ' player' : '') + '"><strong>' + (i + 1) + '</strong><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong><span class="num">' + ownTiles(f.id).length + '</span><strong class="num">' + format(score(f.id)) + '</strong></div>';
     });
     const leader = ranking()[0];
-    out += '</div><h3 class="subheading">Corrida pela coroa</h3><p class="muted-note">' + leader.name + ' lidera o ranking com ' + ownTiles(leader.id).length + ' aldeias. Domínio consolidado: ' + (game.dominance[leader.id] || 0) + '/4 dias. É necessário possuir 10 aldeias para iniciar esta contagem.</p>';
+    out += '</div><h3 class="subheading">Corrida pela coroa</h3><p class="muted-note">' + leader.name + ' lidera o ranking com ' + ownTiles(leader.id).length + ' villages. Dominance held: ' + (game.dominance[leader.id] || 0) + '/4 turns. You need 10 villages to begin this countdown.</p>';
     return out + '</div>';
   }
   function reportUnits(units) {
@@ -849,30 +849,30 @@ function renderArmy(){
   }
   function battleSide(title, values) {
     return '<div class="battle-side"><h4>' + title + '</h4><div class="battle-columns">' +
-      '<div><small>Envolvidas</small><div class="battle-units">' + reportUnits(values.sent) + '</div></div>' +
-      '<div><small>Perdidas</small><div class="battle-units lost">' + reportUnits(values.lost) + '</div></div>' +
-      '<div><small>Sobreviventes</small><div class="battle-units">' + reportUnits(values.survived) + '</div></div>' +
+      '<div><small>Committed</small><div class="battle-units">' + reportUnits(values.sent) + '</div></div>' +
+      '<div><small>Lost</small><div class="battle-units lost">' + reportUnits(values.lost) + '</div></div>' +
+      '<div><small>Survivors</small><div class="battle-units">' + reportUnits(values.survived) + '</div></div>' +
       '</div></div>';
   }
   function renderReports() {
-    let out = '<div class="workspace-body"><p class="section-intro">📜 Histórico das tuas ofensivas e defesas. Os números mostram tropas efetivamente envolvidas, baixas e recursos levados após o combate. As marchas ainda a caminho não aparecem aqui.</p>';
+    let out = '<div class="workspace-body"><p class="section-intro">📜 Your offensive and defensive battles: forces committed, survivors, losses, plunder and terrain effects.</p>';
     if (!game.reports.length) return out + '<p class="muted-note">Ainda não ocorreram batalhas against a tua coroa. Envia um ataque ou espera por uma ofensiva rival.</p></div>';
     game.reports.forEach(function (r) {
       const defending = r.defender === 0;
       const success = defending ? !r.victory : r.victory;
-      const status = success ? 'Vitória' : 'Derrota';
-      const side = defending ? '🚨 DEFESA' : '⚔️ ATAQUE';
+      const status = success ? 'Victory' : 'Defeat';
+      const side = defending ? '🚨 DEFENSE' : '⚔️ ATAQUE';
       const attacker = game.factions[r.attacker].name;
-      const defender = r.defender < 0 ? 'Milícias neutras' : game.factions[r.defender].name;
+      const defender = r.defender < 0 ? 'Neutral militia' : game.factions[r.defender].name;
       out += '<article id="battle-report-' + r.id + '" class="battle-report ' + (success ? 'battle-win' : 'battle-loss') + '">';
       out += '<div class="battle-header"><div><span class="battle-type">' + side + ' · TURN ' + r.day + '</span><h3>' + game.tiles[r.tile].name + ' <span class="pill ' + (success ? 'pact' : 'war') + '">' + (r.conquered ? '🏰 Conquista' : status) + '</span></h3></div><span class="battle-direction">' + (defending ? '🛡️ Recebido' : '⚔️ Enviado') + '</span></div>';
-      out += '<p class="battle-summary">' + attacker + ' ⚔️ ' + defender + ' · ' + (r.mode === 'conquer' ? 'Tentativa de conquista' : 'Incursão') + '</p>';
-      out += battleSide('⚔️ Força atacante — ' + attacker, r.attackers);
-      out += battleSide('🛡️ Força defensora — ' + defender, r.defenders);
-      if (r.militia.sent) out += '<div class="militia-row">🛡️ Milícias locais · Envolvidas: <strong>' + r.militia.sent + '</strong> · Mortas: <strong>' + r.militia.lost + '</strong> · Sobreviventes: <strong>' + r.militia.survived + '</strong></div>';
+      out += '<p class="battle-summary">' + attacker + ' ⚔️ ' + defender + ' · ' + (r.mode === 'conquer' ? 'Siege attempt' : 'Incursão') + '</p>';
+      out += battleSide('⚔️ Attacking army — ' + attacker, r.attackers);
+      out += battleSide('🛡️ Defending army — ' + defender, r.defenders);
+      if (r.militia.sent) out += '<div class="militia-row">🛡️ Local militia · Committed: <strong>' + r.militia.sent + '</strong> · Killed: <strong>' + r.militia.lost + '</strong> · Survivors: <strong>' + r.militia.survived + '</strong></div>';
       const total = RES.reduce(function (n, x) { return n + (r.loot[x.key] || 0); }, 0);
-      out += '<div class="loot-row"><strong>' + (total ? '💰 Recursos saqueados' : '📦 Recursos saqueados: nenhum') + '</strong>' +
-        (total ? '<span>' + costText(r.loot) + '</span><small>' + (defending ? 'Saíram do teu tesouro e foram levados pelo atacante.' : 'Transportados pelos sobreviventes; entram no tesouro quando regressarem.') + '</small>' : '') + '</div>';
+      out += '<div class="loot-row"><strong>' + (total ? '💰 Resources looted' : '📦 Resources looted: none') + '</strong>' +
+        (total ? '<span>' + costText(r.loot) + '</span><small>' + (defending ? 'Taken from your treasury by the raiders.' : 'Carried by surviving raiders; delivered when they return.') + '</small>' : '') + '</div>';
       out += '</article>';
     });
     return out + '</div>';
@@ -881,15 +881,15 @@ function renderArmy(){
     game.reports.forEach(function (r) { r.read = true; });
   }
   function renderChronicle() {
-    return '<div class="workspace-body"><p class="section-intro">Os adversários crescem, negociam e entram em guerra entre si. Cada notícia corresponde a um acontecimento da simulação.</p><div class="chronicle-list">' + game.logs.map(function (l) {
+    return '<div class="workspace-body"><p class="section-intro">Rival kingdoms grow, negotiate and fight. Each entry reflects a simulated event.</p><div class="chronicle-list">' + game.logs.map(function (l) {
       return '<div class="chronicle-row"><strong class="chronicle-day">TURN ' + l.day + '</strong><div><strong>' + l.title + '</strong><p>' + l.detail + '</p></div></div>';
     }).join('') + '</div></div>';
   }
   function renderVillageList() {
     const villages = ownTiles(0);
     $('village-list').innerHTML = villages.length ? villages.map(function (t) {
-      return '<button type="button" data-action="select" data-tile="' + t.id + '" class="' + (game.selected === t.id ? 'active' : '') + '" aria-label="Abrir aldeia ' + t.name + '"><span>⌂ ' + t.name + '</span><small>' + (t.id === FACTIONS[0].capital ? 'Capital' : 'Aldeia') + '</small></button>';
-    }).join('') : '<p class="muted-note">Não tens aldeias.</p>';
+      return '<button type="button" data-action="select" data-tile="' + t.id + '" class="' + (game.selected === t.id ? 'active' : '') + '" aria-label="Open village ' + t.name + '"><span>⌂ ' + t.name + '</span><small>' + (t.id === FACTIONS[0].capital ? 'Capital' : 'Village') + '</small></button>';
+    }).join('') : '<p class="muted-note">You have no villages.</p>';
     const selectedVillage = game.tiles[game.selected] && game.tiles[game.selected].owner === 0 ? game.selected : villages.length ? villages[0].id : -1;
     const select = $('mobile-village-select');
     select.innerHTML = villages.map(function (t) { return '<option value="' + t.id + '"' + (t.id === selectedVillage ? ' selected' : '') + '>' + t.name + '</option>'; }).join('');
@@ -899,9 +899,9 @@ function renderArmy(){
     const villages = ownTiles(0);
     const active = game.tiles[game.selected] && game.tiles[game.selected].owner === 0 ? game.tiles[game.selected] : villages[0];
     const isTown = game.villageMode === 'infrastructure';
-    $('scene-kicker').textContent = isTown ? 'EDIFÍCIOS E DEFESA' : 'CAMPOS DE RECURSOS';
-    $('scene-heading').textContent = (isTown ? 'Centro da aldeia · ' : 'Terras de · ') + (active ? active.name : 'Reino perdido');
-    if (!active) { $('scene-ground').innerHTML = '<p class="muted-note">Não existem aldeias sob o teu domínio.</p>'; return; }
+    $('scene-kicker').textContent = isTown ? 'BUILDINGS & DEFENSE' : 'CAMPOS DE RECURSOS';
+    $('scene-heading').textContent = (isTown ? 'Town center · ' : 'Terras de · ') + (active ? active.name : 'Reino perdido');
+    if (!active) { $('scene-ground').innerHTML = '<p class="muted-note">You have no villages under your control.</p>'; return; }
     const positions = isTown ? [
       {key:'barracks',x:23,y:34},{key:'wall',x:78,y:34},{key:'market',x:50,y:80}
     ] : [
@@ -910,20 +910,20 @@ function renderArmy(){
     const icons = { wood:'🌲',clay:'🧱',iron:'⛏️',grain:'🌾',barracks:'⚔️',wall:'🏰',market:'⚖️' };
     const short = {wood:'Wood',clay:'Clay',iron:'Iron',grain:'Grain',barracks:'Barracks',wall:'Palisade',market:'Market'};
     let out = '<div class="scene-ring ' + (isTown ? 'infrastructure' : 'production') + '">';
-    out += '<div class="scene-heart"><span class="house">' + (isTown ? '🏛️' : '🏡') + '</span><strong>' + active.name + '</strong><small>' + (isTown ? 'Centro da aldeia' : 'Campos e produção') + '</small></div>';
+    out += '<div class="scene-heart"><span class="house">' + (isTown ? '🏛️' : '🏡') + '</span><strong>' + active.name + '</strong><small>' + (isTown ? 'Town center' : 'Fields and production') + '</small></div>';
     positions.forEach(function (p) {
       const lv = active.levels[p.key];
       const building = active.construction && active.construction.key === p.key;
       out += '<button type="button" class="scene-slot ' + (game.buildingFocus === p.key ? 'active' : '') + '" data-building="' + p.key + '" data-action="focus-building" data-key="' + p.key + '" style="--x:' + p.x + '%;--y:' + p.y + '%" aria-label="' + short[p.key] + ', nível ' + lv + ', mostrar melhoria">';
-      out += '<span class="slot-icon" aria-hidden="true">' + icons[p.key] + '</span><span class="slot-name">' + short[p.key] + '</span><span class="slot-level">Nível ' + lv + '</span>';
+      out += '<span class="slot-icon" aria-hidden="true">' + icons[p.key] + '</span><span class="slot-name">' + short[p.key] + '</span><span class="slot-level">Level ' + lv + '</span>';
       if (building) out += '<span class="slot-queue">Em obras · ' + active.construction.left + 'd</span>';
       out += '</button>';
     });
-    out += '</div><div class="scene-note">Clica num edifício para ver os custos de melhoria ↓</div>';
+    out += '</div><div class="scene-note">Select a building to see upgrade costs ↓</div>';
     $('scene-ground').innerHTML = out;
   }
   function renderWorkspace() {
-    const titles = { village: ['MELHORIAS DA ALDEIA', game.villageMode === 'production' ? 'Campos de produção' : 'Edifícios e defesa'], map: ['O CONTINENTE', 'Mapa das províncias'], army: ['ESTRATÉGIA MILITAR', 'Exército e marchas'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELO CONTINENTE', 'Ranking dos impérios'], reports: ['HISTÓRICO MILITAR', '📜 Reports de batalha'], chronicle: ['HISTÓRIA EM MOVIMENTO', 'Crónicas do mundo'] };
+    const titles = { village: ['VILLAGE UPGRADES', game.villageMode === 'production' ? 'Resource fields' : 'Buildings and defense'], map: ['THE CONTINENT', 'Province map'], army: ['MILITARY STRATEGY', 'Army and marches'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELTHE CONTINENT', 'Empire rankings'], reports: ['MILITARY REPORTS', '📜 Reports de batalha'], chronicle: ['LIVING HISTORY', 'World chronicle'] };
     const item = titles[game.tab] || titles.village;
     $('workspace-kicker').textContent = item[0]; $('workspace-title').textContent = item[1];
     const layouts = { village: renderVillage, map: function () { return ''; }, army: renderArmy, diplomacy: renderDiplomacy, ranking: renderRanking, reports: renderReports, chronicle: renderChronicle };
@@ -1025,7 +1025,7 @@ function renderArmy(){
     $('mobile-turn-label').textContent = 'Turn ' + game.day;
     $('mobile-next-turn').title = game.event ? 'Resolve o evento antes de passar turno' : game.ended ? 'A campanha terminou' : 'Terminar turno ' + game.day;
     $('mobile-next-turn').setAttribute('aria-label', game.event ? 'Resolve o evento antes de passar turno' : game.ended ? 'A campanha terminou' : 'Terminar turno ' + game.day + ' e avançar para o seguinte');
-    $('empire-mini').innerHTML = '<span class="tiny-label">O TEU IMPÉRIO</span><div class="mini-stat"><span>Aldeias</span><strong>' + ownTiles(0).length + '</strong></div><div class="mini-stat"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="mini-stat"><span>Posição</span><strong>#' + (ranking().findIndex(function (f) { return f.id === 0; }) + 1) + '</strong></div><div class="mini-stat"><span>Missões</span><strong>' + game.missions.filter(function (m) { return m.owner === 0; }).length + '</strong></div>';
+    $('empire-mini').innerHTML = '<span class="tiny-label">O TEU IMPÉRIO</span><div class="mini-stat"><span>Villages</span><strong>' + ownTiles(0).length + '</strong></div><div class="mini-stat"><span>Population</span><strong>' + format(population(0)) + '</strong></div><div class="mini-stat"><span>Posição</span><strong>#' + (ranking().findIndex(function (f) { return f.id === 0; }) + 1) + '</strong></div><div class="mini-stat"><span>Missões</span><strong>' + game.missions.filter(function (m) { return m.owner === 0; }).length + '</strong></div>';
   }
 
   function diplomacyAction(action, id) {
