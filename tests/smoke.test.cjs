@@ -31,6 +31,7 @@ function startGame(persistentStore) {
   }, { filename: 'game.js' });
   return {
     state() { return window.KingdomsOfAsh.getState(); },
+    html(id) { return (elements[id] || {}).innerHTML || ''; },
     advance() { window.KingdomsOfAsh.advance(); },
     click(data) {
       handlers.click({ target: { closest() { return { dataset: data, disabled: false }; } } });
@@ -178,4 +179,44 @@ test('as preferências de navegação sobrevivem à recuperação do save', () =
   assert.equal(next.state().tab, 'village');
   assert.equal(next.state().villageMode, 'infrastructure');
   assert.equal(next.state().selected, 20);
+});
+
+test('menu clássico alterna entre recursos, centro da aldeia e mapa', () => {
+  const g = startGame();
+  assert.ok(g.html('scene-ground').includes('Madeira'));
+  assert.ok(g.html('scene-ground').includes('Cereais'));
+  g.click({ tab: 'village', mode: 'infrastructure' });
+  assert.equal(g.state().tab, 'village');
+  assert.equal(g.state().villageMode, 'infrastructure');
+  assert.ok(g.html('scene-ground').includes('Quartel'));
+  assert.ok(g.html('scene-ground').includes('Paliçada'));
+  g.click({ tab: 'map' });
+  assert.equal(g.state().tab, 'map');
+  assert.ok(g.html('world-map').includes('data-tile="20"'));
+  g.click({ tab: 'village', mode: 'production' });
+  assert.equal(g.state().villageMode, 'production');
+  assert.ok(g.html('scene-ground').includes('Madeira'));
+});
+
+test('clicar num edifício destaca a melhoria sem consumir recursos', () => {
+  const g = startGame();
+  const resources = JSON.stringify(g.state().factions[0].resources);
+  g.click({ action: 'focus-building', key: 'grain' });
+  assert.equal(g.state().buildingFocus, 'grain');
+  assert.ok(g.html('workspace-content').includes('selected-building'));
+  assert.ok(g.html('scene-ground').includes('data-building="grain"'));
+  assert.equal(JSON.stringify(g.state().factions[0].resources), resources);
+});
+
+test('a lista lateral permite mudar de aldeia e usa o mesmo save', () => {
+  const g = startGame();
+  assert.ok(g.html('village-list').includes('Coração de Cinza'));
+  g.click({ tile: '20' });
+  g.click({ action: 'settle' });
+  g.advance();
+  assert.ok(g.html('village-list').includes('Campina Seca'));
+  g.click({ action: 'select', tile: '20' });
+  assert.equal(g.state().selected, 20);
+  assert.equal(g.state().tab, 'village');
+  assert.ok(g.html('scene-heading') !== null);
 });
