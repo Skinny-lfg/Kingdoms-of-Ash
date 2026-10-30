@@ -1,0 +1,60 @@
+name: Publicar Kingdoms of Ash v0.3 no GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - gh-pages
+    paths:
+      - ".github/workflows/deploy-kingdoms-pages.yml"
+      - "index.html"
+      - "styles.css"
+      - "game.js"
+      - ".nojekyll"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: kingdom-of-ash-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Obter versão jogável v0.3
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+      - name: Preparar Node para testes
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validar lógica do jogo
+        run: node --test
+      - name: Preparar site estático
+        run: |
+          mkdir -p _site
+          cp index.html styles.css game.js .nojekyll _site/
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Enviar ficheiros para GitHub Pages
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar site
+        id: deployment
+        uses: actions/deploy-pages@v4
