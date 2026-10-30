@@ -9,47 +9,47 @@
   const VERSION = 3;
   const OWNER = 'Skinny-lfg/Kingdoms-of-Ash';
   const TERRAIN = {
-    wood: { label: 'Bosques', icon: '🌲', resource: 'wood' },
-    clay: { label: 'Barro vermelho', icon: '🧱', resource: 'clay' },
-    iron: { label: 'Montanhas de ferro', icon: '⛰️', resource: 'iron' },
-    grain: { label: 'Planícies férteis', icon: '🌾', resource: 'grain' },
-    balanced: { label: 'Terras mistas', icon: '🌿', resource: null }
+    wood: { label: 'Woodlands', icon: '🌲', resource: 'wood' },
+    clay: { label: 'Red Clay', icon: '🧱', resource: 'clay' },
+    iron: { label: 'Iron Mountains', icon: '⛰️', resource: 'iron' },
+    grain: { label: 'Fertile Plains', icon: '🌾', resource: 'grain' },
+    balanced: { label: 'Mixed Lands', icon: '🌿', resource: null }
   };
   const RES = [
-    { key: 'wood', label: 'Madeira', icon: '🌲' },
-    { key: 'clay', label: 'Barro', icon: '🧱' },
-    { key: 'iron', label: 'Ferro', icon: '⛏️' },
-    { key: 'grain', label: 'Cereais', icon: '🌾' }
+    { key: 'wood', label: 'Wood', icon: '🌲' },
+    { key: 'clay', label: 'Clay', icon: '🧱' },
+    { key: 'iron', label: 'Iron', icon: '⛏️' },
+    { key: 'grain', label: 'Grain', icon: '🌾' }
   ];
   const UNITS = {
-    spear: { label: 'Lanceiros', icon: '🛡️', attack: 2, defense: 5, upkeep: 0.23, cost: { wood: 29, clay: 23, iron: 14, grain: 22 }, unlock: 1 },
-    sword: { label: 'Espadachins', icon: '⚔️', attack: 6, defense: 3, upkeep: 0.33, cost: { wood: 23, clay: 18, iron: 36, grain: 25 }, unlock: 1 },
-    rider: { label: 'Cavaleiros', icon: '🐎', attack: 11, defense: 4, upkeep: 0.65, cost: { wood: 53, clay: 46, iron: 52, grain: 43 }, unlock: 2 },
-    siege: { label: 'Catapultas', icon: '💣', attack: 16, defense: 2, upkeep: 1.2, cost: { wood: 125, clay: 115, iron: 135, grain: 70 }, unlock: 3 }
+    spear: { label: 'Spearmen', icon: '🛡️', attack: 2, defense: 5, upkeep: 0.23, cost: { wood: 29, clay: 23, iron: 14, grain: 22 }, unlock: 1 },
+    sword: { label: 'Swordsmen', icon: '⚔️', attack: 6, defense: 3, upkeep: 0.33, cost: { wood: 23, clay: 18, iron: 36, grain: 25 }, unlock: 1 },
+    rider: { label: 'Cavalry', icon: '🐎', attack: 11, defense: 4, upkeep: 0.65, cost: { wood: 53, clay: 46, iron: 52, grain: 43 }, unlock: 2 },
+    siege: { label: 'Catapults', icon: '💣', attack: 16, defense: 2, upkeep: 1.2, cost: { wood: 125, clay: 115, iron: 135, grain: 70 }, unlock: 3 }
   };
   const BUILDINGS = {
-    wood: { label: 'Bosques de corte', desc: 'Aumenta a produção de madeira.', base: { wood: 55, clay: 75, iron: 40, grain: 45 } },
-    clay: { label: 'Barreiros', desc: 'Aumenta a produção de barro.', base: { wood: 75, clay: 50, iron: 45, grain: 40 } },
-    iron: { label: 'Minas de ferro', desc: 'Aumenta a produção de ferro.', base: { wood: 85, clay: 65, iron: 45, grain: 40 } },
-    grain: { label: 'Campos de cereais', desc: 'Aumenta a produção de cereais.', base: { wood: 65, clay: 60, iron: 45, grain: 35 } },
-    barracks: { icon: '⚔️', label: 'Quartel', desc: 'Nível 2: cavalaria. Nível 3: catapultas.', base: { wood: 105, clay: 115, iron: 100, grain: 65 } },
-    wall: { icon: '🏰', label: 'Paliçada', desc: 'Fortalece a defesa desta aldeia.', base: { wood: 95, clay: 85, iron: 65, grain: 60 } },
-    market: { icon: '⚖️', label: 'Mercado', desc: 'Aumenta ligeiramente todos os rendimentos.', base: { wood: 85, clay: 95, iron: 80, grain: 70 } }
+    wood: { label: 'Lumber Camp', desc: 'Increases wood production.', base: { wood: 55, clay: 75, iron: 40, grain: 45 } },
+    clay: { label: 'Clay Pit', desc: 'Increases clay production.', base: { wood: 75, clay: 50, iron: 45, grain: 40 } },
+    iron: { label: 'Iron Mine', desc: 'Increases iron production.', base: { wood: 85, clay: 65, iron: 45, grain: 40 } },
+    grain: { label: 'Grain Farm', desc: 'Increases grain production.', base: { wood: 65, clay: 60, iron: 45, grain: 35 } },
+    barracks: { icon: '⚔️', label: 'Barracks', desc: 'Level 2: cavalry. Level 3: catapults.', base: { wood: 105, clay: 115, iron: 100, grain: 65 } },
+    wall: { icon: '🏰', label: 'Palisade', desc: 'Strengthens village defenses.', base: { wood: 95, clay: 85, iron: 65, grain: 60 } },
+    market: { icon: '⚖️', label: 'Market', desc: 'Slightly improves all resource yields.', base: { wood: 85, clay: 95, iron: 80, grain: 70 } }
   };
   const FACTIONS = [
-    { name: 'Coroa de Cinza', short: 'TU', color: '#e4bd78', style: 'player', capital: 19 },
-    { name: 'Legião Carmesim', short: 'LC', color: '#d77973', style: 'aggressive', capital: 0 },
-    { name: 'Reino de Varyn', short: 'RV', color: '#73a9cf', style: 'economic', capital: 7 },
-    { name: 'Liga Mercante', short: 'LM', color: '#b6a8d7', style: 'diplomatic', capital: 32 },
-    { name: 'Clã das Cinzas', short: 'CC', color: '#b5bf80', style: 'opportunist', capital: 39 },
-    { name: 'Sentinelas do Norte', short: 'SN', color: '#82bfb4', style: 'defensive', capital: 4 }
+    { name: 'Ashen Crown', short: 'TU', color: '#e4bd78', style: 'player', capital: 19 },
+    { name: 'Crimson Legion', short: 'LC', color: '#d77973', style: 'aggressive', capital: 0 },
+    { name: 'Kingdom of Varyn', short: 'RV', color: '#73a9cf', style: 'economic', capital: 7 },
+    { name: 'Merchant League', short: 'LM', color: '#b6a8d7', style: 'diplomatic', capital: 32 },
+    { name: 'Ash Clan', short: 'CC', color: '#b5bf80', style: 'opportunist', capital: 39 },
+    { name: 'Northern Sentinels', short: 'SN', color: '#82bfb4', style: 'defensive', capital: 4 }
   ];
   const NAMES = [
-    'Karn Vell','Ardewyn','Vela Negra','Cinza Norte','Torre do Inverno','Ninho do Corvo','Prado Frio','Varyn',
-    'Rochedo','Lobos de Sal','Ferro Escuro','Aguadouro','Vila dos Ossos','Muralha Velha','Serra Partida','Ponte Leste',
-    'Vale Esquecido','Brumavale','Estrada Alta','Coração de Cinza','Campina Seca','Dente da Serpente','Fonte Antiga','Torre dos Sinos',
-    'Rio Negro','Mata Antiga','Monte Oco','Veio Rubro','Arco Partido','Mão de Pedra','Cruzamento','Areal Cinzento',
-    'Porto Mercante','Sombra Longa','Floresta Oca','Passagem Sul','Campo das Lanternas','Túmulo do Rei','Lago de Ferro','Morro das Cinzas'
+    'Karn Vell','Ardewyn','Black Sail','North Ash','Winter Tower','Crow Nest','Cold Meadow','Varyn',
+    'Rockspire','Salt Wolves','Dark Iron','Watering Hole','Bone Village','Old Wall','Broken Ridge','East Bridge',
+    'Forgotten Vale','Mistvale','High Road','Ashheart','Dryfield','Serpent Fang','Ancient Spring','Bell Tower',
+    'Black River','Ancient Grove','Hollow Hill','Red Vein','Broken Arch','Stonehand','Crossroads','Gray Sands',
+    'Tradeport','Longshadow','Hollow Forest','South Pass','Lantern Fields','Kings Tomb','Iron Lake','Ashen Mound'
   ];
   const SETTLE_BASE = { wood: 330, clay: 330, iron: 260, grain: 360 };
   const $ = function (id) { return document.getElementById(id); };
@@ -908,7 +908,7 @@ function renderArmy(){
       {key:'wood',x:21,y:28},{key:'clay',x:78,y:28},{key:'iron',x:20,y:76},{key:'grain',x:79,y:76}
     ];
     const icons = { wood:'🌲',clay:'🧱',iron:'⛏️',grain:'🌾',barracks:'⚔️',wall:'🏰',market:'⚖️' };
-    const short = {wood:'Madeira',clay:'Barro',iron:'Ferro',grain:'Cereais',barracks:'Quartel',wall:'Paliçada',market:'Mercado'};
+    const short = {wood:'Wood',clay:'Clay',iron:'Iron',grain:'Grain',barracks:'Barracks',wall:'Palisade',market:'Market'};
     let out = '<div class="scene-ring ' + (isTown ? 'infrastructure' : 'production') + '">';
     out += '<div class="scene-heart"><span class="house">' + (isTown ? '🏛️' : '🏡') + '</span><strong>' + active.name + '</strong><small>' + (isTown ? 'Centro da aldeia' : 'Campos e produção') + '</small></div>';
     positions.forEach(function (p) {
