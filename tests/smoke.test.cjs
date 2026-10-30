@@ -180,3 +180,107 @@ test('as preferências de navegação sobrevivem à recuperação do save', () =
   assert.equal(next.state().villageMode, 'infrastructure');
   assert.equal(next.state().selected, 20);
 });
+
+
+test('turnos manuais: navegar e recrutar não avançam o mundo', () => {
+  const g = startGame();
+  g.click({ action: 'train', unit: 'spear' });
+  g.click({ tab: 'diplomacy' });
+  assert.equal(g.state().day, 1);
+  g.click({}, 'next-day');
+  assert.equal(g.state().day, 2);
+  assert.ok(g.html('military-strip').includes('🛡️'));
+  assert.ok(g.html('world-map').includes('🌾'));
+  assert.ok(g.html('world-map').includes('🏰'));
+});
+
+test('ataque enviado: relatório de forças, baixas e saque com valores consistentes', () => {
+  const g = startGame();
+  g.click({ tile: '20' });
+  g.click({ action: 'raid' });
+  const mission = g.state().missions[0];
+  assert.ok(mission);
+  const before = { ...mission.troops };
+  assert.equal(g.state().reports.length, 0);
+  g.click({}, 'next-day');
+  const s = g.state(), report = s.reports[0];
+  assert.equal(report.attacker, 0);
+  assert.equal(report.defender, -1);
+  assert.equal(report.tile, 20);
+  assert.equal(report.read, false);
+  for (const key of ['spear','sword','rider','siege']) {
+    assert.equal(report.attackers.sent[key], before[key]);
+    assert.equal(report.attackers.survived[key] + report.attackers.lost[key], before[key]);
+  }
+  assert.ok(report.militia.sent > 0);
+  const total = Object.values(report.loot).reduce((a,b)=>a+b,0);
+  assert.ok(total > 0);
+  assert.equal(total, Object.values(s.missions[0].loot).reduce((a,b)=>a+b,0));
+  assert.ok(g.html('military-strip').includes('Relatórios (1)'));
+  g.click({ tab: 'reports' });
+  assert.equal(g.state().reports[0].read, true);
+  assert.ok(g.html('workspace-content').includes('Recursos saqueados'));
+  assert.equal(g.state().day, 2);
+});
+
+test('ataque recebido: aviso antes da chegada e relatório defensivo com saque', () => {
+  const store = new Map(), initial = startGame(store), s = initial.state();
+  s.missions.push({
+    id: ++s.missionSeq, owner: 1, tile: 19, mode: 'raid', eta: 2,
+    returnTrip: false,
+    troops: { spear: 25, sword: 20, rider: 8, siege: 2 },
+    loot: { wood: 0, clay: 0, iron: 0, grain: 0 }
+  });
+  store.set('kingdoms-of-ash-v01', JSON.stringify(s));
+  const g = startGame(store);
+  assert.ok(g.html('military-strip').includes('🚨'));
+  assert.ok(g.html('military-strip').includes('2 turno(s)'));
+  g.click({}, 'next-day');
+  assert.equal(g.state().reports.length, 0);
+  assert.ok(g.html('military-strip').includes('1 turno(s)'));
+  g.click({}, 'next-day');
+  const report = g.state().reports[0];
+  assert.equal(report.attacker, 1);
+  assert.equal(report.defender, 0);
+  assert.equal(report.attackers.sent.spear, 25);
+  assert.equal(report.defenders.sent.spear, 16);
+  assert.equal(report.defenders.sent.sword, 10);
+  assert.ok(report.victory);
+  assert.ok(Object.values(report.loot).some(n => n > 0));
+  assert.ok(g.state().logs.some(l => l.reportId === report.id && l.tone === 'incoming'));
+  g.click({ action: 'open-reports' });
+  assert.ok(g.html('workspace-content').includes('🚨 DEFESA'));
+  assert.ok(g.html('workspace-content').includes('Recursos saqueados'));
+});
+
+test('relatórios mantêm o estado por ler no save e podem ser consultados', () => {
+  const store = new Map(), g = startGame(store);
+  g.click({ tile: '20' });
+  g.click({ action: 'raid' });
+  g.advance();
+  assert.equal(g.state().reports[0].read, false);
+  const a = startGame(store);
+  assert.equal(a.state().reports[0].read, false);
+  assert.ok(a.html('military-strip').includes('Relatórios (1)'));
+  a.click({ action: 'open-reports' });
+  assert.equal(startGame(store).state().reports[0].read, true);
+});
+
+test('save antigo v0.1 preserva províncias e migra para turnos sem temporizador', () => {
+  const store = new Map(), g = startGame(store);
+  g.click({ tile: '20' });
+  g.click({ action: 'settle' });
+  g.advance();
+  const old = g.state();
+  old.version = 1; old.speed = 20;
+  delete old.reports; delete old.reportSeq;
+  store.set('kingdoms-of-ash-v01', JSON.stringify(old));
+  const restored = startGame(store);
+  assert.equal(restored.state().version, 2);
+  assert.equal(restored.state().day, 2);
+  assert.equal(restored.state().speed, 0);
+  assert.equal(restored.state().tiles[20].owner, 0);
+  assert.equal(restored.state().reports.length, 0);
+  restored.click({}, 'next-day');
+  assert.equal(restored.state().day, 3);
+});
