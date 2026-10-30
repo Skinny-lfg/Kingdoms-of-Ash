@@ -8,10 +8,10 @@
   const VERSION = 2;
   const OWNER = 'Skinny-lfg/Kingdoms-of-Ash';
   const TERRAIN = {
-    wood: { icon: '🌲', label: 'Bosques', icon: '🌲', resource: 'wood' },
-    clay: { icon: '🧱', label: 'Barro vermelho', icon: '🧱', resource: 'clay' },
-    iron: { icon: '⛏️', label: 'Montanhas de ferro', icon: '⛰️', resource: 'iron' },
-    grain: { icon: '🌾', label: 'Planícies férteis', icon: '🌾', resource: 'grain' },
+    wood: { label: 'Bosques', icon: '🌲', resource: 'wood' },
+    clay: { label: 'Barro vermelho', icon: '🧱', resource: 'clay' },
+    iron: { label: 'Montanhas de ferro', icon: '⛰️', resource: 'iron' },
+    grain: { label: 'Planícies férteis', icon: '🌾', resource: 'grain' },
     balanced: { label: 'Terras mistas', icon: '🌿', resource: null }
   };
   const RES = [
