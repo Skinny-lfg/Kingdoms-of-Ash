@@ -117,9 +117,9 @@
 /* Pequeno botão de turno na navegação móvel fixa; cabe nos 320px sem criar mais uma linha. */
 @media(max-width:800px){
   .masthead .time-controls{display:none}
-  .mobile-bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))}
-  .mobile-bottom-nav #mobile-next-turn{background:#e3ecd4;border:1px solid #a4bb89;color:#31552d}
-  .mobile-bottom-nav #mobile-next-turn span{font-size:18px}
-  .mobile-bottom-nav #mobile-next-turn b{font-size:10px}
+  .mobile-bottom-nav{grid-template-columns:repeat(5,minmax(0,1fr)) minmax(92px,2fr);gap:1px}
+  .mobile-bottom-nav #mobile-next-turn{background:#d6e8bc;border:1px solid #789d5e;color:#274920;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;padding:3px 5px}
+  .mobile-bottom-nav #mobile-next-turn span{font-size:22px}
+  .mobile-bottom-nav #mobile-next-turn b{font-size:11px;letter-spacing:.01em;font-variant-numeric:tabular-nums}
   .mobile-bottom-nav #mobile-next-turn:disabled{opacity:.5;cursor:not-allowed;background:#e5e1d6;color:#746f67;border-color:#d0c8b5}
 }
