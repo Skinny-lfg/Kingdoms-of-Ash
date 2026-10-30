@@ -462,14 +462,48 @@
       const n = rates[r.key]; return '<div class="resource"><div class="resource-icon">' + r.icon + '</div><div class="resource-main"><div class="label">' + r.label + '</div><div class="value">' + format(player().resources[r.key]) + '</div></div><span class="income ' + (n < 0 ? 'negative' : '') + '">' + (n >= 0 ? '+' : '') + format(n) + '/d</span></div>';
     }).join('');
   }
+  function incomingMarches() {
+    return game.missions.filter(function (m) { return m.owner !== 0 && !m.returnTrip && game.tiles[m.tile].owner === 0 && m.mode !== 'settle'; });
+  }
+  function renderMilitaryStrip() {
+    const incoming = incomingMarches();
+    const outgoing = game.missions.filter(function (m) { return m.owner === 0 && !m.returnTrip; });
+    const unread = game.reports.filter(function (r) { return !r.read; }).length;
+    let html = '<div class="military-label">🪖 <strong>Exército disponível</strong></div><div class="military-units">';
+    Object.keys(UNITS).forEach(function (k) {
+      html += '<span class="military-unit" title="' + UNITS[k].label + '">' + UNITS[k].icon + ' <strong>' + format(player().troops[k]) + '</strong></span>';
+    });
+    html += '</div><div class="military-activity">';
+    if (incoming.length) {
+      const soonest = Math.min.apply(null, incoming.map(function (m) { return m.eta; }));
+      html += '<span class="incoming-alert" role="status">🚨 ' + incoming.length + ' ataque(s) a caminho · ' + soonest + ' turno(s)</span>';
+    } else html += '<span class="calm-alert">🛡️ Sem ataques a caminho</span>';
+    if (outgoing.length) html += '<span>⚔️ ' + outgoing.length + ' missão(ões) enviadas</span>';
+    html += '</div><div class="military-action">' + actionButton('📜 Relatórios' + (unread ? ' (' + unread + ')' : ''), 'open-reports', '', unread ? 'primary' : 'subtle small') + '</div>';
+    $('military-strip').innerHTML = html;
+    const badge = $('report-badge');
+    badge.textContent = String(unread);
+    badge.classList.toggle('hidden', !unread);
+  }
   function renderMap() {
     $('world-map').innerHTML = game.tiles.map(function (t) {
       const f = t.owner < 0 ? null : game.factions[t.owner];
-      const symbol = f ? (t.id === FACTIONS[f.id].capital ? '♛' : '♜') : TERRAIN[t.terrain].icon;
+      const symbol = f ? (t.id === FACTIONS[f.id].capital ? '🏰' : '🏘️') : TERRAIN[t.terrain].icon;
+      const stance = f && f.id !== 0 ? relation(0, f.id).stance : null;
+      const danger = incomingMarches().some(function (m) { return m.tile === t.id; });
+      const status = danger ? '🚨' : stance === 'war' ? '⚔️' : stance === 'alliance' ? '🤝' : stance === 'pact' ? '🕊️' : '';
       const style = f ? ' style="--owner:' + f.color + '"' : '';
-      return '<button class="tile terrain-' + t.terrain + (f ? ' owned' : '') + (t.id === game.selected ? ' selected' : '') + '"' + style + ' type="button" data-tile="' + t.id + '" aria-pressed="' + (t.id === game.selected) + '" title="' + t.name + ' — ' + (f ? f.name : 'Terras neutras') + '"><span class="tile-symbol">' + symbol + '</span><span class="tile-name">' + t.name + '</span><span class="tile-level">' + (f ? 'Nv. ' + (t.levels.wood + t.levels.clay + t.levels.iron + t.levels.grain) : '•') + '</span>' + (f ? '<span class="tile-marker">' + f.short + '</span>' : '') + '</button>';
+      return '<button class="tile terrain-' + t.terrain + (f ? ' owned' : '') + (t.id === game.selected ? ' selected' : '') +
+        (danger ? ' tile-threat' : '') + '"' + style + ' type="button" data-tile="' + t.id +
+        '" aria-pressed="' + (t.id === game.selected) + '" title="' + t.name + ' — ' + (f ? f.name : 'Terras neutras') +
+        '"><span class="tile-symbol">' + symbol + '</span><span class="tile-terrain" title="' + TERRAIN[t.terrain].label + '">' + TERRAIN[t.terrain].icon +
+        '</span><span class="tile-name">' + t.name + '</span><span class="tile-level">' + (f ? 'Nv. ' + (t.levels.wood + t.levels.clay + t.levels.iron + t.levels.grain) : '•') +
+        '</span>' + (f ? '<span class="tile-marker">' + f.short + '</span>' : '') +
+        (status ? '<span class="tile-status">' + status + '</span>' : '') + '</button>';
     }).join('');
-    $('map-legend').innerHTML = game.factions.map(function (f) { return '<span class="legend-item"><i class="legend-dot" style="--dot:' + f.color + '"></i>' + f.name + '</span>'; }).join('') + '<span class="legend-item"><i class="legend-dot" style="--dot:#50635d"></i>Neutro</span>';
+    $('map-legend').innerHTML = game.factions.map(function (f) {
+      return '<span class="legend-item"><i class="legend-dot" style="--dot:' + f.color + '"></i>' + f.name + '</span>';
+    }).join('') + '<span class="legend-item">🌿 Neutro</span><span class="legend-item">⚔️ Guerra</span><span class="legend-item">🤝 Aliança</span><span class="legend-item">🚨 Sob ataque</span>';
   }
   function fact(label, value) { return '<div class="fact-row"><span>' + label + '</span><strong>' + value + '</strong></div>'; }
   function actionButton(label, action, attrs, style, disabled) {
@@ -483,22 +517,27 @@
     const desc = own ? 'Esta aldeia produz para a tua coroa.' : f ? 'Esta aldeia pertence a outro império.' : 'Podes colonizar este território ou atacá-lo para obter recursos.';
     let body = '<div class="province-body"><div class="province-name"><span class="province-emblem">' + (f ? '♜' : TERRAIN[t.terrain].icon) + '</span><div><h3>' + t.name + '</h3><p>' + (f ? f.name : 'Terras neutras') + '</p></div></div>';
     body += '<p class="province-desc">' + TERRAIN[t.terrain].label + '. ' + desc + '</p>';
-    body += fact('Terreno', TERRAIN[t.terrain].label);
+    body += fact('Terreno', TERRAIN[t.terrain].icon + ' ' + TERRAIN[t.terrain].label);
+    if (t.owner >= 0) {
+      body += '<div class="garrison"><strong>🛡️ Guarnição ' + (own ? 'disponível para defesa' : '(estimada)') + '</strong><div class="garrison-units">' +
+        Object.keys(UNITS).map(function (k) { return '<span>' + UNITS[k].icon + ' ' + format(defendTroops(t.owner)[k]) + '</span>'; }).join('') +
+        '</div></div>';
+    } else body += fact('Defensores neutros', '🛡️ ' + t.militia + ' milicianos');
     if (!own) body += fact('Distância', dist === 999 ? 'Sem acesso' : dist + ' espaços');
-    body += fact('Defesa', f ? 'Paliçada ' + t.levels.wall : t.militia + ' milicianos');
+    body += fact('Fortificação', f ? '🏰 Paliçada nível ' + t.levels.wall : 'Sem muralha');
     if (t.construction) body += fact('Em construção', BUILDINGS[t.construction.key].label + ' · ' + t.construction.left + 'd');
     body += '<div class="action-stack">';
     if (own) {
       body += '<p class="context-label">O que queres fazer?</p><div class="action-group">';
-      body += actionButton('⌂ Melhorar produção', 'open-production', '', 'primary');
-      body += actionButton('⚒ Edifícios e defesas', 'open-infrastructure', '', 'subtle');
-      body += actionButton('⚔ Recrutar tropas', 'open-army', '', 'subtle');
+      body += actionButton('🌾 Melhorar produção', 'open-production', '', 'primary');
+      body += actionButton('🏰 Edifícios e defesas', 'open-infrastructure', '', 'subtle');
+      body += actionButton('⚔️ Recrutar tropas', 'open-army', '', 'subtle');
       body += '</div><p class="context-tip">Escolhe uma opção. Os campos aumentam os recursos por dia; o quartel desbloqueia novas unidades.</p>';
     } else if (!game.ended) {
       if (t.owner === -1) {
         const cost = settleCost(0);
         body += '<p class="context-label">Expansão</p><div class="action-group">';
-        body += actionButton('✦ Fundar aldeia', 'settle', '', 'primary', dist > 3 || !canAfford(0, cost));
+        body += actionButton('🏡 Fundar aldeia', 'settle', '', 'primary', dist > 3 || !canAfford(0, cost));
         body += '</div><span class="action-hint">Custo: ' + costText(cost) + '. Alcance: até 3 espaços.</span>';
       } else {
         const stance = relation(0, t.owner).stance;
@@ -511,7 +550,7 @@
       body += '<input class="force-slider" type="range" id="force-slider" min="25" max="100" step="25" value="' + game.force + '" aria-label="Percentagem de tropas enviadas">';
       const protectedTarget = f && ['pact','alliance'].includes(relation(0, f.id).stance);
       body += '<div class="action-group">';
-      body += actionButton('⚔ Saquear recursos', 'raid', '', 'subtle', armyCount(extractArmy(0, game.force)) < 3 || protectedTarget);
+      body += actionButton('⚔️ Saquear recursos', 'raid', '', 'subtle', armyCount(extractArmy(0, game.force)) < 3 || protectedTarget);
       if (f) body += actionButton('♜ Conquistar aldeia', 'conquer', '', 'danger', player().troops.siege < 2 || protectedTarget);
       body += '</div><span class="action-hint">Os ataques demoram dias. Para conquistar são precisas catapultas e uma vitória decisiva.</span>';
     }
@@ -525,14 +564,14 @@
     out += '<div class="stat-grid"><div class="stat-card"><span>Aldeias</span><strong>' + villages.length + '</strong></div><div class="stat-card"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="stat-card"><span>Produção total</span><strong>' + format(RES.reduce(function (n, r) { return n + Math.max(0, income(0)[r.key]); }, 0)) + '</strong></div></div>';
     out += '<h3 class="subheading">Aldeia ativa — ' + focused.name + '</h3>';
     out += '<div class="village-tabs" role="group" aria-label="Tipo de construção">';
-    out += actionButton('❋ Produção', 'village-mode', 'data-mode="production" aria-pressed="' + (game.villageMode === 'production') + '"', game.villageMode === 'production' ? 'active' : 'subtle');
-    out += actionButton('⚒ Edifícios e defesa', 'village-mode', 'data-mode="infrastructure" aria-pressed="' + (game.villageMode === 'infrastructure') + '"', game.villageMode === 'infrastructure' ? 'active' : 'subtle');
+    out += actionButton('🌾 Produção', 'village-mode', 'data-mode="production" aria-pressed="' + (game.villageMode === 'production') + '"', game.villageMode === 'production' ? 'active' : 'subtle');
+    out += actionButton('🏰 Edifícios e defesa', 'village-mode', 'data-mode="infrastructure" aria-pressed="' + (game.villageMode === 'infrastructure') + '"', game.villageMode === 'infrastructure' ? 'active' : 'subtle');
     out += '</div><div class="building-list">';
     Object.keys(BUILDINGS).filter(function (k) { return game.villageMode === 'infrastructure' ? !['wood','clay','iron','grain'].includes(k) : ['wood','clay','iron','grain'].includes(k); }).forEach(function (k) {
       const lv = focused.levels[k]; const cost = buildingCost(focused, k);
       const can = !focused.construction && lv < 5 && canAfford(0, cost);
       const status = focused.construction && focused.construction.key === k ? 'Em obras · ' + focused.construction.left + 'd' : lv >= 5 ? 'Máximo' : 'Nível ' + lv;
-      out += '<div class="entry"><div><strong>' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Nível máximo atingido') + '</small></div>' + actionButton('Melhorar', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
+      out += '<div class="entry"><div><strong>' + BUILDINGS[k].icon + ' ' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Nível máximo atingido') + '</small></div>' + actionButton('Melhorar', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
     });
     out += '</div><h3 class="subheading">As tuas províncias</h3><div class="building-list">';
     villages.forEach(function (t) {
