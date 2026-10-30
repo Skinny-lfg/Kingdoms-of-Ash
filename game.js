@@ -440,7 +440,8 @@ function resolveMission(m) {
  else t.militia=Math.floor(t.militia*(1-defLoss));
  let conquered=false;
  if(win&&m.mode==='siege'&&m.troops.siege>=2&&defender>=0&&power>=defense*1.1){
-   conquered=true;t.owner=m.owner;t.militia=0;t.garrison=blankTroops();t.construction=null;t.fortifyUntil=0;t.evacuateUntil=0;
+   conquered=true;Object.keys(UNITS).forEach(k=>game.factions[defender].troops[k]+=surviving[k]);
+   t.owner=m.owner;t.militia=0;t.garrison=blankTroops();t.construction=null;t.fortifyUntil=0;t.evacuateUntil=0;
    Object.keys(t.levels).forEach(k=>t.levels[k]=Math.max(k==='wall'||k==='market'?0:1,t.levels[k]-1));
    message('Village conquered',game.factions[m.owner].name+' captured '+t.name+'.','war');
  }
@@ -651,7 +652,8 @@ function produceAndBuild() {
       const open=game.tiles.filter(t=>t.owner<0);
       const caravans=open.filter(t=>t.site==='caravan');
       caravans.forEach(t=>t.site='wild');
-      const roaming=open.filter(t=>t.site==='wild'&&t.militia>0);
+      const previous=new Set(caravans.map(t=>t.id));
+      const roaming=open.filter(t=>t.site==='wild'&&t.militia>0&&!previous.has(t.id));
       roaming.sort((a,b)=>strategicValue(b,0)-strategicValue(a,0));
       caravans.forEach((_,i)=>{if(roaming[i])roaming[i].site='caravan';});
       if (caravans.length) message('💰 Trade routes shifted','Merchant caravans moved across the Ashen Continent.');
@@ -846,7 +848,7 @@ function renderArmy(){
     let out = '<div class="workspace-body"><p class="section-intro">Alliances help protect your borders and allow support. Gifts improve relations, but strong rivals can still threaten you.</p><div class="diplomacy-list">';
     game.factions.slice(1).forEach(function (f) {
       const r = relation(0, f.id);
-      out += '<div class="entry"><div><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong> <span class="pill ' + (r.stance === 'war' ? 'war' : r.stance === 'neutral' ? 'neutral' : 'pact') + '">' + stanceName(r.stance) + '</span><small>Opinion ' + r.opinion + ' · ' + ownTiles(f.id).length + ' villages · Power ' + format(armyPower(f.troops)) + '<br>Personality: ' + ({ aggressive: 'Aggressive', economic: 'Economic', diplomatic: 'Diplomatic', opportunist: 'Opportunist', defensive: 'Defensive' }[f.style]) + '</small></div><div class="entry-actions">';
+      out += '<div class="entry"><div><strong><i class="faction-swatch" style="--swatch:' + f.color + '"></i>' + f.name + '</strong> <span class="pill ' + (r.stance === 'war' ? 'war' : r.stance === 'neutral' ? 'neutral' : 'pact') + '">' + stanceName(r.stance) + '</span><small>Opinion ' + r.opinion + ' · ' + ownTiles(f.id).length + ' villages · Power ' + format(armyPower(f.troops)) + '<br>Personality: ' + ({ aggressive: 'Aggressive', economic: 'Economic', diplomatic: 'Diplomatic', opportunist: 'Opportunist', defensive: 'Defensive' }[f.style]) + '</small>' + (f.plan && ownTiles(f.id).some(t=>t.scoutUntil>=game.day) ? '<small>📜 Scouted plan: '+f.plan.type+' near '+game.tiles[f.plan.target].name+'</small>' : '<small>🔎 Scout their villages to discover plans.</small>') + '</div><div class="entry-actions">';
       out += actionButton('Gift', 'gift', 'data-faction="' + f.id + '"', 'small', !canAfford(0, { wood: 70, grain: 70 }) || r.stance === 'war');
       if (r.stance === 'neutral') out += actionButton('Offer pact', 'pact', 'data-faction="' + f.id + '"', 'small');
       if (r.stance === 'pact') out += actionButton('Offer alliance', 'alliance', 'data-faction="' + f.id + '"', 'small');
