@@ -1212,7 +1212,7 @@ function renderArmy(){
     if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); return; }
     if (btn.id === 'back-to-map') { game.tab = 'map'; refresh(); focusActiveView(); return; }
     if (btn.id === 'new-game') {
-      if (window.confirm('Start a new campaign? The current preview save will be replaced.')) {
+      if (window.confirm('Reset this campaign? Your progress in this strategy preview will be replaced. Your other versions will remain unchanged.')) {
         createGame(); refresh(); focusActiveView();
       }
     }
