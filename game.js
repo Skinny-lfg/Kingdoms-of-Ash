@@ -2,35 +2,35 @@
   'use strict';
 
   const SAVE_KEY = 'kingdoms-of-ash-v01';
-  const VERSION = 1;
+  const VERSION = 2;
   const OWNER = 'Skinny-lfg/Kingdoms-of-Ash';
   const TERRAIN = {
-    wood: { label: 'Bosques', icon: '♠', resource: 'wood' },
-    clay: { label: 'Barro vermelho', icon: '◈', resource: 'clay' },
-    iron: { label: 'Montanhas de ferro', icon: '⛰', resource: 'iron' },
-    grain: { label: 'Planícies férteis', icon: '❋', resource: 'grain' },
-    balanced: { label: 'Terras mistas', icon: '✧', resource: null }
+    wood: { icon: '🌲', label: 'Bosques', icon: '🌲', resource: 'wood' },
+    clay: { icon: '🧱', label: 'Barro vermelho', icon: '🧱', resource: 'clay' },
+    iron: { icon: '⛏️', label: 'Montanhas de ferro', icon: '⛰️', resource: 'iron' },
+    grain: { icon: '🌾', label: 'Planícies férteis', icon: '🌾', resource: 'grain' },
+    balanced: { label: 'Terras mistas', icon: '🌿', resource: null }
   };
   const RES = [
-    { key: 'wood', label: 'Madeira', icon: '♠' },
-    { key: 'clay', label: 'Barro', icon: '◈' },
-    { key: 'iron', label: 'Ferro', icon: '⚒' },
-    { key: 'grain', label: 'Cereais', icon: '❋' }
+    { key: 'wood', label: 'Madeira', icon: '🌲' },
+    { key: 'clay', label: 'Barro', icon: '🧱' },
+    { key: 'iron', label: 'Ferro', icon: '⛏️' },
+    { key: 'grain', label: 'Cereais', icon: '🌾' }
   ];
   const UNITS = {
-    spear: { label: 'Lanceiros', icon: '♜', attack: 2, defense: 5, upkeep: 0.23, cost: { wood: 29, clay: 23, iron: 14, grain: 22 }, unlock: 1 },
-    sword: { label: 'Espadachins', icon: '⚔', attack: 6, defense: 3, upkeep: 0.33, cost: { wood: 23, clay: 18, iron: 36, grain: 25 }, unlock: 1 },
-    rider: { label: 'Cavaleiros', icon: '♞', attack: 11, defense: 4, upkeep: 0.65, cost: { wood: 53, clay: 46, iron: 52, grain: 43 }, unlock: 2 },
-    siege: { label: 'Catapultas', icon: '⚒', attack: 16, defense: 2, upkeep: 1.2, cost: { wood: 125, clay: 115, iron: 135, grain: 70 }, unlock: 3 }
+    spear: { label: 'Lanceiros', icon: '🛡️', attack: 2, defense: 5, upkeep: 0.23, cost: { wood: 29, clay: 23, iron: 14, grain: 22 }, unlock: 1 },
+    sword: { label: 'Espadachins', icon: '⚔️', attack: 6, defense: 3, upkeep: 0.33, cost: { wood: 23, clay: 18, iron: 36, grain: 25 }, unlock: 1 },
+    rider: { label: 'Cavaleiros', icon: '🐎', attack: 11, defense: 4, upkeep: 0.65, cost: { wood: 53, clay: 46, iron: 52, grain: 43 }, unlock: 2 },
+    siege: { label: 'Catapultas', icon: '💣', attack: 16, defense: 2, upkeep: 1.2, cost: { wood: 125, clay: 115, iron: 135, grain: 70 }, unlock: 3 }
   };
   const BUILDINGS = {
     wood: { label: 'Bosques de corte', desc: 'Aumenta a produção de madeira.', base: { wood: 55, clay: 75, iron: 40, grain: 45 } },
     clay: { label: 'Barreiros', desc: 'Aumenta a produção de barro.', base: { wood: 75, clay: 50, iron: 45, grain: 40 } },
     iron: { label: 'Minas de ferro', desc: 'Aumenta a produção de ferro.', base: { wood: 85, clay: 65, iron: 45, grain: 40 } },
     grain: { label: 'Campos de cereais', desc: 'Aumenta a produção de cereais.', base: { wood: 65, clay: 60, iron: 45, grain: 35 } },
-    barracks: { label: 'Quartel', desc: 'Nível 2: cavalaria. Nível 3: catapultas.', base: { wood: 105, clay: 115, iron: 100, grain: 65 } },
-    wall: { label: 'Paliçada', desc: 'Fortalece a defesa desta aldeia.', base: { wood: 95, clay: 85, iron: 65, grain: 60 } },
-    market: { label: 'Mercado', desc: 'Aumenta ligeiramente todos os rendimentos.', base: { wood: 85, clay: 95, iron: 80, grain: 70 } }
+    barracks: { icon: '⚔️', label: 'Quartel', desc: 'Nível 2: cavalaria. Nível 3: catapultas.', base: { wood: 105, clay: 115, iron: 100, grain: 65 } },
+    wall: { icon: '🏰', label: 'Paliçada', desc: 'Fortalece a defesa desta aldeia.', base: { wood: 95, clay: 85, iron: 65, grain: 60 } },
+    market: { icon: '⚖️', label: 'Mercado', desc: 'Aumenta ligeiramente todos os rendimentos.', base: { wood: 85, clay: 95, iron: 80, grain: 70 } }
   };
   const FACTIONS = [
     { name: 'Coroa de Cinza', short: 'TU', color: '#e4bd78', style: 'player', capital: 19 },
@@ -48,9 +48,8 @@
     'Porto Mercante','Sombra Longa','Floresta Oca','Passagem Sul','Campo das Lanternas','Túmulo do Rei','Lago de Ferro','Morro das Cinzas'
   ];
   const SETTLE_BASE = { wood: 330, clay: 330, iron: 260, grain: 360 };
-  const SPEED_MS = { 1: 16000, 5: 3200, 20: 800 };
   const $ = function (id) { return document.getElementById(id); };
-  let game, accumulated = 0, toastTimeout = null;
+  let game, toastTimeout = null;
 
   function blankTroops() { return { spear: 0, sword: 0, rider: 0, siege: 0 }; }
   function blankResources(n) { return { wood: n || 0, clay: n || 0, iron: n || 0, grain: n || 0 }; }
@@ -121,8 +120,8 @@
   function buildingCost(t, key) {
     return Object.fromEntries(RES.map(function (r) { return [r.key, Math.round(BUILDINGS[key].base[r.key] * Math.pow(1.48, t.levels[key] || 0))]; }));
   }
-  function message(title, detail, tone) {
-    game.logs.unshift({ day: game.day, title: title, detail: detail || '', tone: tone || 'normal' });
+  function message(title, detail, tone, reportId) {
+    game.logs.unshift({ day: game.day, title: title, detail: detail || '', tone: tone || 'normal', reportId: reportId || null });
     if (game.logs.length > 150) game.logs.length = 150;
   }
   function notice(text, bad) {
@@ -135,8 +134,8 @@
   function createGame() {
     game = {
       version: VERSION, seed: 1837659, day: 1, speed: 0, selected: 19, tab: 'village',
-      force: 75, villageMode: 'production', missionSeq: 0, ended: false, event: null, lastEventDay: 0,
-      relations: {}, missions: [], dominance: {}, logs: [], factions: [], tiles: []
+      force: 75, villageMode: 'production', missionSeq: 0, reportSeq: 0, ended: false, event: null, lastEventDay: 0,
+      relations: {}, missions: [], reports: [], dominance: {}, logs: [], factions: [], tiles: []
     };
     FACTIONS.forEach(function (spec, id) {
       game.factions.push({
@@ -160,7 +159,7 @@
       t.levels = { wood: 2, clay: 2, iron: 2, grain: 2, barracks: 1, wall: 1, market: 0 };
     });
     message('O continente desperta', 'Seis governantes reclamam as suas primeiras aldeias. Apenas um poderá unificar as Terras de Cinza.');
-    message('A coroa é tua', 'Constrói, recruta, expande, negoceia e disputa o primeiro lugar. O tempo começa em pausa.');
+    message('A coroa é tua', 'Constrói, recruta, expande, negoceia e disputa o primeiro lugar. Termina o turno para os rivais agirem.');
     save();
   }
   function save() {
@@ -169,8 +168,15 @@
   function load() {
     try {
       const data = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-      if (data && data.version === VERSION && Array.isArray(data.tiles) && data.tiles.length === 40 && data.factions.length === 6) {
-        game = data; game.speed = 0; game.force = game.force || 75; game.villageMode = game.villageMode || 'production'; return true;
+      if (data && (data.version === 1 || data.version === VERSION) && Array.isArray(data.tiles) && data.tiles.length === 40 && Array.isArray(data.factions) && data.factions.length === 6) {
+        game = data;
+        game.version = VERSION;
+        game.speed = 0; // Save antigo: desativa a progressão automática.
+        game.force = game.force || 75;
+        game.villageMode = game.villageMode || 'production';
+        game.reports = Array.isArray(game.reports) ? game.reports : [];
+        game.reportSeq = Number.isInteger(game.reportSeq) ? game.reportSeq : game.reports.reduce(function (n, r) { return Math.max(n, r.id || 0); }, 0);
+        return true;
       }
     } catch (_) { /* guardar jogo novo */ }
     createGame(); return false;
@@ -224,7 +230,10 @@
       setStance(id, t.owner, 'war', -85);
       message('Guerra declarada', game.factions[id].name + ' atacou o domínio de ' + game.factions[t.owner].name + '.', 'war');
     }
-    if (!quiet) message('Exército em marcha', format(armyCount(troops)) + ' soldados seguem para ' + t.name + ' (' + mode + ').');
+    if (t.owner === 0 && id !== 0) {
+      message('🚨 Ataque inimigo a caminho', game.factions[id].name + ' enviou ' + format(armyCount(troops)) + ' tropas para ' + t.name + '. Chegam em ' + travelDays(id, tileId) + ' turno(s).', 'incoming');
+    }
+    if (!quiet) message(id === 0 ? '⚔️ Exército enviado' : 'Exército em marcha', format(armyCount(troops)) + ' soldados seguem para ' + t.name + ' (' + mode + ').', id === 0 ? 'outgoing' : 'normal');
     return true;
   }
   function casualty(source, ratio) {
@@ -384,7 +393,7 @@
     });
     if (!nearby.length) return;
     const rival = nearby[rand(nearby.length)];
-    game.event = { faction: rival.id, type: 'ultimatum' }; game.lastEventDay = game.day; game.speed = 0;
+    game.event = { faction: rival.id, type: 'ultimatum' }; game.lastEventDay = game.day;
     message('Ultimato diplomático', rival.name + ' exige um tributo para manter a paz.');
   }
   function checkEnd() {
@@ -393,12 +402,11 @@
       game.dominance[f.id] = ownTiles(f.id).length >= 10 && leaders[0].id === f.id ? (game.dominance[f.id] || 0) + 1 : 0;
       if (game.dominance[f.id] >= 4 && !game.ended) {
         game.ended = { winner: f.id, reason: 'dominance' };
-        game.speed = 0;
         message('O continente tem um soberano', f.name + ' dominou pelo menos 10 províncias e liderou o ranking durante quatro dias.');
       }
     });
     if (!ownTiles(0).length && !game.ended) {
-      game.ended = { winner: -1, reason: 'defeat' }; game.speed = 0;
+      game.ended = { winner: -1, reason: 'defeat' };
       message('A coroa caiu', 'A tua última aldeia foi conquistada. A campanha terminou.', 'war');
     }
   }
