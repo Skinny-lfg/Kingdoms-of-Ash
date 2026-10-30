@@ -8,6 +8,7 @@
   <title>Kingdoms of Ash — O Teu Reino</title>
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./travian-layout.css">
+  <link rel="stylesheet" href="./mobile-layout.css">
   <script src="./game.js" defer></script>
 </head>
 <body>
@@ -48,6 +49,7 @@
 
     <div class="game-layout">
       <main class="center-area">
+        <div class="mobile-village-switch" id="mobile-village-wrap"><label for="mobile-village-select">⌂ Aldeia</label><select id="mobile-village-select" aria-label="Selecionar aldeia"></select></div>
         <section class="village-scene panel" id="village-scene" aria-labelledby="scene-heading">
           <div class="section-header">
             <div><p class="eyebrow" id="scene-kicker">CAMPOS DE PRODUÇÃO</p><h2 id="scene-heading">A tua aldeia</h2></div>
@@ -96,8 +98,15 @@
       </aside>
     </div>
 
-    <footer class="footline"><span>KINGDOMS OF ASH · UI V0.3</span><span>Inspirado na organização clássica dos jogos de estratégia de aldeias.</span></footer>
+    <footer class="footline"><span>KINGDOMS OF ASH · UI V0.4</span><span>Inspirado na organização clássica dos jogos de estratégia de aldeias.</span></footer>
   </div>
+  <nav class="mobile-bottom-nav" aria-label="Navegação rápida">
+    <button type="button" class="nav-button active" data-tab="village" data-mode="production"><span aria-hidden="true">🌾</span><b>Recursos</b></button>
+    <button type="button" class="nav-button" data-tab="village" data-mode="infrastructure"><span aria-hidden="true">🏘️</span><b>Aldeia</b></button>
+    <button type="button" class="nav-button" data-tab="map"><span aria-hidden="true">🗺️</span><b>Mapa</b></button>
+    <button type="button" class="nav-button" data-tab="army"><span aria-hidden="true">⚔️</span><b>Tropas</b></button>
+    <button type="button" id="mobile-more-toggle" aria-controls="nav" aria-expanded="false"><span aria-hidden="true">☰</span><b>Mais</b></button>
+  </nav>
   <div id="event-layer" class="event-layer hidden" role="presentation"></div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 </body>
