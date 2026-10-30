@@ -52,7 +52,7 @@ function clearEvent(game) {
 test('mapa, fações e campanha começam corretamente', () => {
   const g = startGame();
   const s = g.state();
-  assert.equal(s.version, 2);
+  assert.equal(s.version, 3);
   assert.equal(s.day, 1);
   assert.equal(s.speed, 0);
   assert.equal(s.tiles.length, 40);
@@ -95,7 +95,7 @@ test('recrutamento, incursão e regresso das tropas', () => {
   assert.ok(totals(g.state(), 0) < initial + 5);
   g.advance(); g.advance();
   assert.equal(g.state().missions.filter(m => m.owner === 0).length, 0);
-  assert.ok(g.state().logs.some(l => l.title.includes('Tropas regressaram')));
+  assert.ok(g.state().logs.some(l => l.title.includes('Army returned')));
 });
 
 test('diplomacia: presente, pacto, aliança e apoio', () => {
@@ -125,7 +125,7 @@ test('a simulação avança, os rivais expandem e ninguém fica com recursos neg
     if (s.ended) break;
   }
   assert.ok(g.state().tiles.filter(t => t.owner >= 0).length >= 15);
-  assert.ok(g.state().logs.some(l => l.title.includes('Nova aldeia fundada')));
+  assert.ok(g.state().logs.some(l => l.title.includes('New settlement')));
 });
 
 test('o progresso é recuperado do mesmo navegador, sempre por turnos', () => {
@@ -217,10 +217,10 @@ test('ataque enviado: relatório de forças, baixas e saque com valores consiste
   const total = Object.values(report.loot).reduce((a,b)=>a+b,0);
   assert.ok(total > 0);
   assert.equal(total, Object.values(s.missions[0].loot).reduce((a,b)=>a+b,0));
-  assert.ok(g.html('military-strip').includes('Relatórios (1)'));
+  assert.ok(g.html('military-strip').includes('Reports (1)'));
   g.click({ tab: 'reports' });
   assert.equal(g.state().reports[0].read, true);
-  assert.ok(g.html('workspace-content').includes('Recursos saqueados'));
+  assert.ok(g.html('workspace-content').includes('Resources looted'));
   assert.equal(g.state().day, 2);
 });
 
@@ -232,26 +232,26 @@ test('ataque recebido: aviso antes da chegada e relatório defensivo com saque',
     troops: { spear: 25, sword: 20, rider: 8, siege: 2 },
     loot: { wood: 0, clay: 0, iron: 0, grain: 0 }
   });
-  store.set('kingdoms-of-ash-v04', JSON.stringify(s));
+  store.set('kingdoms-of-ash-strategy-en', JSON.stringify(s));
   const g = startGame(store);
   assert.ok(g.html('military-strip').includes('🚨'));
-  assert.ok(g.html('military-strip').includes('2 turno(s)'));
+  assert.ok(g.html('military-strip').includes('2 turn(s)'));
   g.click({}, 'next-day');
   assert.equal(g.state().reports.length, 0);
-  assert.ok(g.html('military-strip').includes('1 turno(s)'));
+  assert.ok(g.html('military-strip').includes('1 turn(s)'));
   g.click({}, 'next-day');
   const report = g.state().reports[0];
   assert.equal(report.attacker, 1);
   assert.equal(report.defender, 0);
   assert.equal(report.attackers.sent.spear, 25);
-  assert.equal(report.defenders.sent.spear, 16);
-  assert.equal(report.defenders.sent.sword, 10);
+  assert.equal(report.defenders.sent.spear, 8);
+  assert.equal(report.defenders.sent.sword, 4);
   assert.ok(report.victory);
   assert.ok(Object.values(report.loot).some(n => n > 0));
   assert.ok(g.state().logs.some(l => l.reportId === report.id && l.tone === 'incoming'));
   g.click({ action: 'open-reports' });
-  assert.ok(g.html('workspace-content').includes('🚨 DEFESA'));
-  assert.ok(g.html('workspace-content').includes('Recursos saqueados'));
+  assert.ok(g.html('workspace-content').includes('🚨 DEFENSE'));
+  assert.ok(g.html('workspace-content').includes('Resources looted'));
 });
 
 test('relatórios mantêm o estado por ler no save e podem ser consultados', () => {
@@ -262,7 +262,7 @@ test('relatórios mantêm o estado por ler no save e podem ser consultados', () 
   assert.equal(g.state().reports[0].read, false);
   const a = startGame(store);
   assert.equal(a.state().reports[0].read, false);
-  assert.ok(a.html('military-strip').includes('Relatórios (1)'));
+  assert.ok(a.html('military-strip').includes('Reports (1)'));
   a.click({ action: 'open-reports' });
   assert.equal(startGame(store).state().reports[0].read, true);
 });
@@ -276,9 +276,9 @@ test('save antigo v0.1 preserva províncias e migra para turnos sem temporizador
   old.version = 1; old.speed = 20;
   delete old.reports; delete old.reportSeq;
   store.set('kingdoms-of-ash-v01', JSON.stringify(old));
-  store.delete('kingdoms-of-ash-v04');
+  store.delete('kingdoms-of-ash-strategy-en');
   const restored = startGame(store);
-  assert.equal(restored.state().version, 2);
+  assert.equal(restored.state().version, 3);
   assert.equal(restored.state().day, 2);
   assert.equal(restored.state().speed, 0);
   assert.equal(restored.state().tiles[20].owner, 0);
@@ -293,13 +293,13 @@ test('a v0.4 usa um save independente sem apagar as campanhas existentes', () =>
   const legacy = startGame(store).state();
   legacy.version = 1;
   store.set('kingdoms-of-ash-v01', JSON.stringify(legacy));
-  store.delete('kingdoms-of-ash-v04');
+  store.delete('kingdoms-of-ash-strategy-en');
   const before = store.get('kingdoms-of-ash-v01');
   const v3 = startGame(store);
   v3.click({}, 'next-day');
   assert.equal(v3.state().day, 2);
   assert.equal(store.get('kingdoms-of-ash-v01'), before);
-  assert.ok(store.has('kingdoms-of-ash-v04'));
+  assert.ok(store.has('kingdoms-of-ash-strategy-en'));
   assert.equal(startGame(store).state().day, 2);
 });
 
@@ -308,11 +308,11 @@ test('navegação Travian: campos, centro da aldeia e mapa sem passar turno', ()
   const g = startGame();
   const initial = g.state().day;
   assert.ok(g.html('scene-ground').includes('🌲'));
-  assert.ok(g.html('scene-ground').includes('Campos e produção'));
+  assert.ok(g.html('scene-ground').includes('Fields and production'));
   g.click({ tab: 'village', mode: 'infrastructure' });
   assert.equal(g.state().tab, 'village');
   assert.equal(g.state().villageMode, 'infrastructure');
-  assert.ok(g.html('scene-ground').includes('Centro da aldeia'));
+  assert.ok(g.html('scene-ground').includes('Town center'));
   assert.ok(g.html('scene-ground').includes('🏰'));
   g.click({ action: 'focus-building', key: 'barracks' });
   assert.equal(g.state().buildingFocus, 'barracks');
@@ -321,7 +321,7 @@ test('navegação Travian: campos, centro da aldeia e mapa sem passar turno', ()
   assert.equal(g.state().tab, 'map');
   g.click({ tab: 'village', mode: 'production' });
   assert.equal(g.state().villageMode, 'production');
-  assert.ok(g.html('scene-ground').includes('Campos e produção'));
+  assert.ok(g.html('scene-ground').includes('Fields and production'));
   assert.equal(g.state().day, initial);
 });
 
@@ -335,11 +335,11 @@ test('selecionar aldeia no mapa regressa à cena e deixa consultar relatórios',
   g.click({ action: 'select', tile: '20' });
   assert.equal(g.state().tab, 'village');
   assert.equal(g.state().selected, 20);
-  assert.ok(g.html('scene-ground').includes('Campina Seca'));
+  assert.ok(g.html('scene-ground').includes('Dryfield'));
   g.click({ tab: 'reports' });
   assert.equal(g.state().tab, 'reports');
   g.click({ tab: 'village', mode: 'infrastructure' });
-  assert.ok(g.html('scene-ground').includes('Centro da aldeia'));
+  assert.ok(g.html('scene-ground').includes('Town center'));
 });
 
 test('importa save da v0.3 do GitHub Pages sem o alterar', () => {
@@ -347,7 +347,7 @@ test('importa save da v0.3 do GitHub Pages sem o alterar', () => {
   original.click({}, 'next-day');
   const snapshot = JSON.stringify(original.state());
   store.set('kingdoms-of-ash-v03-pages', snapshot);
-  store.delete('kingdoms-of-ash-v04');
+  store.delete('kingdoms-of-ash-strategy-en');
   const newer = startGame(store);
   assert.equal(newer.state().day, 2);
   newer.click({}, 'next-day');
@@ -362,10 +362,10 @@ test('mobile: botão fixo de turno avança exatamente um dia e respeita eventos'
   assert.equal(g.state().day, 2);
   const state = g.state();
   state.event = { faction: 1, type: 'ultimatum' };
-  g.store.set('kingdoms-of-ash-v04', JSON.stringify(state));
+  g.store.set('kingdoms-of-ash-strategy-en', JSON.stringify(state));
   const blocked = startGame(g.store);
   assert.equal(blocked.state().day, 2);
-  assert.equal(blocked.html('military-strip').includes('Exército'), true);
+  assert.equal(blocked.html('military-strip').includes('Available reserves'), true);
   blocked.click({}, 'mobile-next-turn');
   assert.equal(blocked.state().day, 2);
   blocked.click({ action: 'event-refuse' });
@@ -384,7 +384,7 @@ test('o botão mobile usa a ação explícita e mostra o turno atual', () => {
   assert.equal(g.state().day, 4);
   const event = g.state();
   event.event = { type: 'ultimatum', faction: 1 };
-  g.store.set('kingdoms-of-ash-v04', JSON.stringify(event));
+  g.store.set('kingdoms-of-ash-strategy-en', JSON.stringify(event));
   const blocked = startGame(g.store);
   blocked.click({ action: 'end-turn' }, 'mobile-next-turn');
   assert.equal(blocked.state().day, 4);
