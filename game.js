@@ -138,7 +138,7 @@ function totalArmy(id) {
     game.factions.forEach(function(f){ f.plan=f.plan||null; });
     game.tiles.forEach(function(t){
       t.garrison=t.garrison||blankTroops(); t.fortifyUntil=t.fortifyUntil||0;
-      t.evacuateUntil=t.evacuateUntil||0; t.scoutUntil=t.scoutUntil||0;
+      t.evacuateUntil=t.evacuateUntil||0; t.scoutUntil=t.scoutUntil||0; t.ambushUntil=t.ambushUntil||0;
       t.site=t.site||(t.id%11===0?'camp':t.id%7===0?'caravan':t.id%3===0?'farm':'wild');
       t.stock=t.stock||{wood:100,clay:100,iron:100,grain:120};
     });
@@ -212,7 +212,7 @@ function upkeep(id) {
       game.tiles.push({ id: i, name: name, terrain: terrain, owner: -1, militia: 9 + (i * 7) % 12,
         site: i % 11 === 0 ? 'camp' : i % 7 === 0 ? 'caravan' : i % 3 === 0 ? 'farm' : 'wild',
         stock: { wood: 120 + i % 7 * 29, clay: 110 + i % 5 * 25, iron: 90 + i % 4 * 22, grain: 140 + i % 6 * 34 },
-        garrison: blankTroops(), fortifyUntil: 0, evacuateUntil: 0, scoutUntil: 0,
+        garrison: blankTroops(), fortifyUntil: 0, evacuateUntil: 0, scoutUntil: 0, ambushUntil: 0,
         levels: freshTileLevels(), construction: null });
     });
     FACTIONS.forEach(function (f, id) {
@@ -312,6 +312,14 @@ function station(id,tileId,key,qty) {
     if(id===0)message('Defenses prepared',t.name+' gains a temporary defensive advantage for three turns.');
     return true;
   }
+
+  function ambush(id,tileId){
+    const t=game.tiles[tileId];if(!t||t.owner!==id||t.terrain!=='wood'||t.ambushUntil>=game.day||
+      !spend(id,{wood:15,grain:40}))return false;
+    t.ambushUntil=game.day+3;
+    if(id===0)message('Ambush prepared',t.name+' can intercept enemy raids for three turns.');
+    return true;
+  }
   function evacuate(id,tileId) {
     const t=game.tiles[tileId];if(!t||t.owner!==id||!spend(id,{grain:20}))return false;
     Object.keys(UNITS).forEach(function(k){game.factions[id].troops[k]+=t.garrison[k];t.garrison[k]=0;});
@@ -408,8 +416,9 @@ function resolveMission(m) {
    return true;
  }
  const defender=t.owner,attackersBefore=clone(m.troops),defendersBefore=defendTroops(defender,t.id);
+ if(defender>=0&&defender!==m.owner){const f=game.factions[defender];if(f.style==='opportunist'||f.style==='aggressive')f.plan={type:'retaliate',target:m.origin||t.id,ready:game.day+1};}
  const militiaBefore=defender<0?t.militia:0;
- const defenseBonus=terrainDefense(t)*(t.fortifyUntil>=game.day?1.28:1)*(defender>=0?1+Math.min(.18,alliedCover(defender,t.id)*.06):1);
+ const defenseBonus=terrainDefense(t)*(t.fortifyUntil>=game.day?1.28:1)*(t.ambushUntil>=game.day&&m.mode==='raid'?1.30:1)*(defender>=0?1+Math.min(.18,alliedCover(defender,t.id)*.06):1);
  const defense=(militiaBefore*2.3+armyPower(defendersBefore,true)+t.levels.wall*17+6)*defenseBonus;
  const supply=logistics(m.owner,t.id);
  const power=armyPower(m.troops)*(m.mode==='raid'?.92:m.mode==='siege'?.85:1.08)*
@@ -710,6 +719,7 @@ function renderSelected(){
     fact('Supplies',known?costText(t.stock):'Unknown (scout to reveal)');
  }
  if(t.fortifyUntil>=game.day)body+=fact('Prepared defenses','Until turn '+t.fortifyUntil);
+ if(t.ambushUntil>=game.day)body+=fact('Forest ambush','Until turn '+t.ambushUntil);
  if(t.construction)body+=fact('Construction',BUILDINGS[t.construction.key].label+' · '+t.construction.left+' turn(s)');
  body+='<div class="action-stack">';
  if(own){
@@ -721,7 +731,10 @@ function renderSelected(){
    if(incoming.length)body+='<p class="incoming-alert">🚨 '+incoming.length+' incoming attack(s); next arrival in '+Math.min(...incoming.map(m=>m.eta))+' turn(s).</p>';
    body+='<div class="action-group">'+
      actionButton('🏰 Prepare defenses (3 turns)','fortify','data-tile="'+t.id+'"','small',t.fortifyUntil>game.day||!canAfford(0,{wood:45,clay:40,iron:25,grain:20}))+
-     actionButton('🏃 Evacuate troops / stores','evacuate','data-tile="'+t.id+'"','small subtle',!canAfford(0,{grain:20}))+'</div>';
+     actionButton('🏃 Evacuate troops / stores','evacuate','data-tile="'+t.id+'"','small subtle',!canAfford(0,{grain:20}))+
+     (t.terrain==='wood'?actionButton('🌲 Lay ambush','ambush','data-tile="'+t.id+'"','small',t.ambushUntil>=game.day||!canAfford(0,{wood:15,grain:40})):'')+'</div>';
+   const attacker=game.missions.find(m=>m.owner!==0&&!m.returnTrip&&m.tile===t.id);
+   if(attacker&&game.tiles[attacker.origin]?.owner===attacker.owner)body+='<div class="action-group">'+actionButton('🗡️ Counterattack origin','counterattack','data-target="'+attacker.origin+'"','small danger',armyCount(extractArmy(0,game.force))<3)+'</div>';
  }else if(!game.ended){
    if(t.owner<0){
      body+='<h4 class="action-subheading">Expansion</h4><div class="action-group">'+
@@ -1074,6 +1087,12 @@ function renderArmy(){
     }
     else if (action === 'reinforce') {
       if(!sendReinforcement(0,Number(btn.dataset.from),Number(btn.dataset.to),50))notice('No stationed troops available.',true);
+    }
+    else if (action === 'ambush') {
+      if(!ambush(0,Number(btn.dataset.tile)))notice('Cannot lay an ambush here.',true);
+    }
+    else if (action === 'counterattack') {
+      if(!launch(0,Number(btn.dataset.target),'attack',game.force))notice('Counterattack unavailable.',true);
     }
     else if (action === 'fortify') {
       if(!fortify(0,Number(btn.dataset.tile)))notice('Cannot fortify this village now.',true);
