@@ -81,3 +81,15 @@ button{font:inherit;color:inherit;cursor:pointer}button:focus-visible{outline:2p
 .left-panel .left-footer p{display:none}
 .left-panel .left-footer .text-button{white-space:nowrap}
 @media(max-width:900px){.left-panel{flex-wrap:wrap}.left-panel .nav{flex:1 1 100%;order:1}.left-panel .left-footer{order:2;margin-left:auto;padding:3px 7px}}
+
+.workspace-tools{display:flex;align-items:center;gap:12px}
+#back-to-map{display:none}
+@media(max-width:900px){
+ .game-layout{grid-template-areas:"navigation" "map" "selection" "workspace" "news"}
+ .center-area,.right-area{display:contents}
+ .map-panel{grid-area:map}
+ .workspace{grid-area:workspace}
+ .intelligence{grid-area:selection}
+ .dispatches{grid-area:news}
+ #back-to-map{display:inline-flex;align-items:center}
+}
