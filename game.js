@@ -252,18 +252,42 @@
     Object.keys(UNITS).forEach(function (k) { result[k] = Math.ceil(pool[k] / sites); });
     return result;
   }
+  function troopLoss(before, after) {
+    const lost = blankTroops();
+    Object.keys(UNITS).forEach(function (k) { lost[k] = Math.max(0, (before[k] || 0) - (after[k] || 0)); });
+    return lost;
+  }
+  function recordBattle(battle) {
+    if (battle.attacker !== 0 && battle.defender !== 0) return;
+    const report = Object.assign({ id: ++game.reportSeq, day: game.day, read: false }, battle);
+    game.reports.unshift(report);
+    if (game.reports.length > 120) game.reports.length = 120;
+    const defending = report.defender === 0;
+    const success = defending ? !report.victory : report.victory;
+    const icon = defending ? (success ? '🛡️' : '🚨') : '⚔️';
+    const title = defending
+      ? (success ? 'Defesa vitoriosa' : report.conquered ? 'Aldeia conquistada pelo inimigo' : 'Aldeia saqueada')
+      : (success ? (report.conquered ? 'Conquista vitoriosa' : 'Ataque vitorioso') : 'Ataque repelido');
+    const rival = defending ? report.attacker : report.defender;
+    const enemyName = rival < 0 ? 'milícias neutras' : game.factions[rival].name;
+    const lost = defending ? report.defenders.lost : report.attackers.lost;
+    const detail = (defending ? 'Defendeste ' : 'Atacaste ') + game.tiles[report.tile].name +
+      ' contra ' + enemyName + '. Perdas: ' + format(armyCount(lost)) +
+      ' soldados. Saque: ' + costText(report.loot) + '.';
+    message(icon + ' ' + title, detail, defending ? 'incoming' : 'outgoing', report.id);
+  }
   function resolveMission(m) {
     const target = game.tiles[m.tile];
     if (m.returnTrip) {
       Object.keys(UNITS).forEach(function (k) { game.factions[m.owner].troops[k] += m.troops[k]; });
       give(m.owner, m.loot);
-      if (m.owner === 0) message('Tropas regressaram', 'Os sobreviventes voltaram de ' + target.name + ' com ' + costText(m.loot) + '.');
+      if (m.owner === 0) message('🏠 Tropas regressaram', 'Os sobreviventes voltaram de ' + target.name + ' com ' + costText(m.loot) + '.');
       return true;
     }
     if (m.mode === 'settle') {
       if (target.owner === -1) {
         target.owner = m.owner; target.militia = 0; target.levels = freshTileLevels();
-        message('Nova aldeia fundada', game.factions[m.owner].name + ' estabeleceu uma aldeia em ' + target.name + '.');
+        message('🏡 Nova aldeia fundada', game.factions[m.owner].name + ' estabeleceu uma aldeia em ' + target.name + '.');
       } else {
         const refund = Object.fromEntries(RES.map(function (r) { return [r.key, Math.floor(SETTLE_BASE[r.key] * 0.4)]; }));
         give(m.owner, refund);
@@ -272,22 +296,25 @@
       return true;
     }
     const defender = target.owner;
-    const defenders = defendTroops(defender);
-    const baseDefense = target.militia * 2.4 + armyPower(defenders, true) + target.levels.wall * 16 + 8;
+    const attackersBefore = clone(m.troops);
+    const defendersBefore = defendTroops(defender);
+    const militiaBefore = defender === -1 ? target.militia : 0;
+    const baseDefense = target.militia * 2.4 + armyPower(defendersBefore, true) + target.levels.wall * 16 + 8;
     const attack = armyPower(m.troops, false) * (0.88 + rng() * 0.28);
     const victory = attack >= baseDefense;
     const atkLoss = victory ? Math.min(0.38, 0.09 + baseDefense / (attack + 1) * 0.19) : Math.min(0.92, 0.44 + baseDefense / (attack + baseDefense + 1) * 0.35);
     const defLoss = victory ? 0.68 + rng() * 0.31 : 0.08 + rng() * 0.22;
     m.troops = casualty(m.troops, atkLoss);
-    if (defender >= 0) subtractLost(game.factions[defender].troops, defenders, casualty(defenders, defLoss));
+    const defendersAfter = casualty(defendersBefore, defLoss);
+    if (defender >= 0) subtractLost(game.factions[defender].troops, defendersBefore, defendersAfter);
     else target.militia = Math.floor(target.militia * (1 - defLoss));
+    let conquered = false;
     if (victory) {
-      const conquer = m.mode === 'conquer' && m.troops.siege >= 2 && defender >= 0 && attack >= baseDefense * 1.15;
-      if (conquer) {
-        target.owner = m.owner;
-        target.militia = 0; target.construction = null;
+      conquered = m.mode === 'conquer' && m.troops.siege >= 2 && defender >= 0 && attack >= baseDefense * 1.15;
+      if (conquered) {
+        target.owner = m.owner; target.militia = 0; target.construction = null;
         Object.keys(target.levels).forEach(function (k) { target.levels[k] = Math.max(k === 'wall' || k === 'market' ? 0 : 1, target.levels[k] - 1); });
-        message('Província conquistada', game.factions[m.owner].name + ' tomou ' + target.name + ' a ' + game.factions[defender].name + '!', 'war');
+        message('🏰 Província conquistada', game.factions[m.owner].name + ' tomou ' + target.name + ' a ' + game.factions[defender].name + '!', 'war');
       } else {
         const victim = defender >= 0 ? game.factions[defender] : null;
         RES.forEach(function (r) {
@@ -295,11 +322,19 @@
           m.loot[r.key] += n;
           if (victim) victim.resources[r.key] -= n;
         });
-        message('Incursão vitoriosa', game.factions[m.owner].name + ' saqueou ' + target.name + '.', 'war');
+        if (defender !== 0 && m.owner !== 0) message('Incursão vitoriosa', game.factions[m.owner].name + ' saqueou ' + target.name + '.', 'war');
       }
     } else {
-      message('Exército repelido', 'Os defensores de ' + target.name + ' travaram o ataque de ' + game.factions[m.owner].name + '.', 'war');
+      if (defender !== 0 && m.owner !== 0) message('Exército repelido', 'Os defensores de ' + target.name + ' travaram o ataque de ' + game.factions[m.owner].name + '.', 'war');
     }
+    recordBattle({
+      attacker: m.owner, defender: defender, tile: m.tile, mode: m.mode,
+      victory: victory, conquered: conquered,
+      attackers: { sent: attackersBefore, survived: clone(m.troops), lost: troopLoss(attackersBefore, m.troops) },
+      defenders: { sent: defendersBefore, survived: defendersAfter, lost: troopLoss(defendersBefore, defendersAfter) },
+      militia: { sent: militiaBefore, survived: defender === -1 ? target.militia : 0, lost: defender === -1 ? militiaBefore - target.militia : 0 },
+      loot: clone(m.loot)
+    });
     m.returnTrip = true; m.eta = travelDays(m.owner, m.tile);
     return false;
   }
