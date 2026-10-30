@@ -13,6 +13,7 @@ function startGame(persistentStore) {
   const store = persistentStore || new Map();
   const fakeElement = () => ({
     innerHTML: '', textContent: '', className: '', dataset: {}, disabled: false,
+    attributes: {}, setAttribute(name, value) { this.attributes[name] = String(value); },
     classList: { toggle() {}, add() {}, remove() {} }
   });
   const document = {
