@@ -140,3 +140,42 @@ test('o progresso é recuperado do mesmo navegador, mas o tempo reabre pausado',
   assert.equal(b.state().speed, 0);
   assert.equal(b.state().tab, 'ranking');
 });
+
+
+test('atalhos contextuais abrem a gestão correta sem gastar recursos', () => {
+  const g = startGame();
+  const before = { ...g.state().factions[0].resources };
+  g.click({ tile: '20' });
+  g.click({ action: 'guide-production' });
+  assert.equal(g.state().tab, 'village');
+  assert.equal(g.state().villageMode, 'production');
+  assert.equal(g.state().selected, 19);
+  g.click({ action: 'open-infrastructure' });
+  assert.equal(g.state().villageMode, 'infrastructure');
+  g.click({ action: 'open-army' });
+  assert.equal(g.state().tab, 'army');
+  g.click({ action: 'open-diplomacy' });
+  assert.equal(g.state().tab, 'diplomacy');
+  assert.equal(JSON.stringify(g.state().factions[0].resources), JSON.stringify(before));
+});
+
+test('guia de expansão seleciona um território válido sem criar missões', () => {
+  const g = startGame();
+  g.click({ action: 'guide-expand' });
+  const s = g.state();
+  assert.notEqual(s.selected, 19);
+  assert.equal(s.tiles[s.selected].owner, -1);
+  assert.ok(Math.abs(s.selected % 8 - 19 % 8) + Math.abs(Math.floor(s.selected / 8) - Math.floor(19 / 8)) <= 3);
+  assert.equal(s.missions.length, 0);
+});
+
+test('as preferências de navegação sobrevivem à recuperação do save', () => {
+  const store = new Map();
+  const g = startGame(store);
+  g.click({ action: 'open-infrastructure' });
+  g.click({ tile: '20' });
+  const next = startGame(store);
+  assert.equal(next.state().tab, 'village');
+  assert.equal(next.state().villageMode, 'infrastructure');
+  assert.equal(next.state().selected, 20);
+});
