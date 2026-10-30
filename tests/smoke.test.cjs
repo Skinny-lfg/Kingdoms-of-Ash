@@ -231,7 +231,7 @@ test('ataque recebido: aviso antes da chegada e relatório defensivo com saque',
     troops: { spear: 25, sword: 20, rider: 8, siege: 2 },
     loot: { wood: 0, clay: 0, iron: 0, grain: 0 }
   });
-  store.set('kingdoms-of-ash-v01', JSON.stringify(s));
+  store.set('kingdoms-of-ash-v03', JSON.stringify(s));
   const g = startGame(store);
   assert.ok(g.html('military-strip').includes('🚨'));
   assert.ok(g.html('military-strip').includes('2 turno(s)'));
@@ -275,6 +275,7 @@ test('save antigo v0.1 preserva províncias e migra para turnos sem temporizador
   old.version = 1; old.speed = 20;
   delete old.reports; delete old.reportSeq;
   store.set('kingdoms-of-ash-v01', JSON.stringify(old));
+  store.delete('kingdoms-of-ash-v03');
   const restored = startGame(store);
   assert.equal(restored.state().version, 2);
   assert.equal(restored.state().day, 2);
@@ -283,4 +284,20 @@ test('save antigo v0.1 preserva províncias e migra para turnos sem temporizador
   assert.equal(restored.state().reports.length, 0);
   restored.click({}, 'next-day');
   assert.equal(restored.state().day, 3);
+});
+
+
+test('a v0.3 usa um save independente sem apagar a campanha principal', () => {
+  const store = new Map();
+  const legacy = startGame(store).state();
+  legacy.version = 1;
+  store.set('kingdoms-of-ash-v01', JSON.stringify(legacy));
+  store.delete('kingdoms-of-ash-v03');
+  const before = store.get('kingdoms-of-ash-v01');
+  const v3 = startGame(store);
+  v3.click({}, 'next-day');
+  assert.equal(v3.state().day, 2);
+  assert.equal(store.get('kingdoms-of-ash-v01'), before);
+  assert.ok(store.has('kingdoms-of-ash-v03'));
+  assert.equal(startGame(store).state().day, 2);
 });
