@@ -799,6 +799,9 @@
     $('phase-label').textContent = game.day < 20 ? 'A era dos pequenos reinos' : game.day < 60 ? 'A era das conquistas' : 'A disputa pela coroa';
     $('next-day').disabled = !!game.ended || !!game.event;
     $('mobile-next-turn').disabled = !!game.ended || !!game.event;
+    $('mobile-turn-label').textContent = 'Turno ' + game.day;
+    $('mobile-next-turn').title = game.event ? 'Resolve o evento antes de passar turno' : game.ended ? 'A campanha terminou' : 'Terminar turno ' + game.day;
+    $('mobile-next-turn').setAttribute('aria-label', game.event ? 'Resolve o evento antes de passar turno' : game.ended ? 'A campanha terminou' : 'Terminar turno ' + game.day + ' e avançar para o seguinte');
     $('empire-mini').innerHTML = '<span class="tiny-label">O TEU IMPÉRIO</span><div class="mini-stat"><span>Aldeias</span><strong>' + ownTiles(0).length + '</strong></div><div class="mini-stat"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="mini-stat"><span>Posição</span><strong>#' + (ranking().findIndex(function (f) { return f.id === 0; }) + 1) + '</strong></div><div class="mini-stat"><span>Missões</span><strong>' + game.missions.filter(function (m) { return m.owner === 0; }).length + '</strong></div>';
   }
 
@@ -835,6 +838,12 @@
     const action = btn.dataset.action;
     const tileId = btn.dataset.tile !== undefined ? Number(btn.dataset.tile) : game.selected;
     const factionId = Number(btn.dataset.faction);
+    if (action === 'end-turn') {
+      if (game.ended || game.event) { notice(game.event ? 'Resolve o evento antes de avançar.' : 'Esta campanha terminou.', true); return; }
+      advanceDay();
+      notice('⏭️ Turno ' + game.day + ' iniciado');
+      return;
+    }
     if (action === 'restart') { createGame(); refresh(); return; }
     if (action === 'review-end' && game.ended) {
       game.endSummaryDismissed = true;
@@ -912,7 +921,12 @@
       return;
     }
     if (btn.dataset.action) { handleAction(btn); return; }
-    if (btn.id === 'next-day' || btn.id === 'mobile-next-turn') { advanceDay(); return; }
+    if (btn.id === 'next-day' || btn.id === 'mobile-next-turn') {
+      if (game.ended || game.event) return;
+      advanceDay();
+      notice('⏭️ Turno ' + game.day + ' iniciado');
+      return;
+    }
     if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); return; }
     if (btn.id === 'back-to-map') { game.tab = 'map'; refresh(); focusActiveView(); return; }
     if (btn.id === 'new-game') {
