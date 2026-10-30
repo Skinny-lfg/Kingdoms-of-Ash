@@ -9,3 +9,67 @@ button{font:inherit;color:inherit;cursor:pointer}button:focus-visible{outline:2p
 @media(max-width:800px){.shell{padding:12px 11px}.masthead{flex-wrap:wrap;gap:11px}.brand{flex:1}.campaign-status{order:3;width:100%;display:flex;justify-content:center;align-items:baseline;gap:10px}.campaign-status .muted{display:none}.resource{flex:1 1 120px;padding:10px}.resource-main .value{font-size:15px}.game-layout{display:block}.left-panel{min-height:0;margin-bottom:12px;padding:7px}.side-heading,.side-divider,.empire-mini,.left-footer{display:none}.nav{display:flex;overflow-x:auto;gap:4px}.nav-button{flex:1 0 auto;font-size:11px;padding:9px 7px;gap:4px}.nav-button span{font-size:14px;width:16px}.center-area,.right-area{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:12px}.map-viewport{padding:16px 8px}.world-map{gap:4px}.tile{aspect-ratio:1;min-height:42px}.tile .tile-symbol{font-size:19px}.tile .tile-name{display:none}.tile .tile-marker{font-size:7px;top:2px;right:2px}.legend{padding:10px}.right-area{grid-template-columns:1fr 1fr}.footline{font-size:8px}}
 @media(max-width:580px){h1{font-size:15px}.crest{width:43px;height:43px}.time-controls{width:100%;justify-content:center}.speed{flex:1}.campaign-status{order:0;width:auto}.masthead{gap:9px}.right-area{grid-template-columns:1fr}.section-header{padding:14px}.section-header h2{font-size:15px}.workspace-body{padding:13px}.stat-grid{grid-template-columns:repeat(3,1fr)}.stat-card{padding:9px}.stat-card strong{font-size:15px}.resource-strip{gap:5px}.resource{flex-basis:45%;gap:4px;padding:8px}.resource-icon{font-size:17px;width:20px}.resource .income{font-size:10px}.world-map{gap:3px}.tile{border-radius:4px}.tile .tile-symbol{font-size:16px}.tile .tile-level{font-size:7px}.tile .tile-marker{padding:0 2px}.entry{align-items:flex-start;flex-direction:column}.entry .entry-actions{justify-content:flex-start}.rank-row{grid-template-columns:21px minmax(0,1fr) 42px 55px;font-size:10px}.footline{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.tile{transition:none}}
+
+/* v0.2 — Navegação simplificada: tarefas claras e mapa no centro da experiência */
+.game-layout{grid-template-columns:minmax(0,1fr) 310px;grid-template-areas:"navigation navigation" "world details";align-items:start}
+.left-panel{grid-area:navigation;min-height:0;padding:7px 10px}
+.left-panel .side-heading,.left-panel .side-divider,.left-panel .empire-mini,.left-panel .left-footer{display:none}
+.nav{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px}
+.nav-button{flex:1 1 auto;justify-content:center;padding:10px 15px;white-space:nowrap;font-size:12px}
+.nav-button span{font-size:18px}
+.center-area{grid-area:world}
+.right-area{grid-area:details;display:grid;grid-template-columns:1fr;min-width:0}
+.intelligence{position:sticky;top:10px;z-index:4}
+.map-viewport{padding:22px 18px}
+.map-overlay{margin-bottom:12px}
+.world-map{max-width:1100px}
+.map-panel .section-header{padding-top:15px;padding-bottom:13px}
+.guidance{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:14px;padding:13px 18px;border-color:#746044;background:linear-gradient(95deg,#302e2a,#17212a 65%)}
+.guidance-copy{flex:1;min-width:0}
+.guidance-copy .eyebrow{margin-bottom:5px}
+.guidance-copy strong{display:block;font-family:Cinzel,serif;font-size:14px;color:#f0d4a1;margin-bottom:4px}
+.guidance-copy p{font-size:11px;color:#b9c3c7;line-height:1.5}
+.guidance-actions{display:flex;flex-wrap:wrap;gap:8px}
+.guidance .button{white-space:nowrap}
+.action-subheading{font-family:Cinzel,serif;color:#ead09f;font-size:12px;margin:15px 0 8px}
+.action-group{display:grid;gap:6px}
+.action-group .button{width:100%}
+.action-group .action-hint{margin:2px 0 5px}
+.context-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#e1c188;font-weight:700}
+.context-tip{font-size:11px;line-height:1.6;color:#afbfc1;border-left:2px solid #95754a;padding:5px 0 5px 10px}
+.village-tabs{display:flex;flex-wrap:wrap;gap:7px;margin:15px 0 10px}
+.village-tabs .button{flex:1 1 100px}
+.village-tabs .button.active{color:#1a1f23;background:var(--gold);border-color:var(--gold);font-weight:700}
+.panel .section-intro{line-height:1.65}
+.intelligence .province-body{padding-top:13px}
+.intelligence .action-stack{gap:7px}
+.intelligence .button.primary{font-weight:700}
+.map-panel .legend{font-size:10px}
+@media(max-width:1200px){
+.game-layout{grid-template-columns:minmax(0,1fr) 292px;grid-template-areas:"navigation navigation" "world details"}
+.left-panel{grid-row:auto}.right-area{grid-column:auto;grid-template-columns:1fr}
+}
+@media(max-width:900px){
+.game-layout{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"navigation" "world" "details";gap:12px}
+.left-panel{margin:0;padding:6px}
+.nav{overflow-x:auto;flex-wrap:nowrap}
+.nav-button{flex:0 0 auto;padding:10px 13px}
+.right-area{grid-area:details;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0}
+.intelligence{position:static}
+.center-area{margin:0}
+.guidance{align-items:flex-start}
+}
+@media(max-width:600px){
+.game-layout{display:grid}
+.resource-strip{margin-bottom:10px}
+.guidance{display:grid;gap:11px;padding:13px;margin-bottom:12px}
+.guidance-actions{display:flex}
+.guidance-actions .button{flex:1}
+.right-area{grid-template-columns:1fr}
+.nav-button{flex:0 0 auto;gap:6px}
+.tile{min-height:42px}
+.tile.selected{outline-width:2px}
+.map-panel .map-viewport{padding:15px 7px 12px}
+.map-overlay{font-size:8px;letter-spacing:.15em}
+.action-stack .force-label{margin-top:8px}
+}
