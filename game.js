@@ -209,7 +209,7 @@ function upkeep(id) {
     }
     NAMES.forEach(function (name, i) {
       const terrain = ['wood','clay','iron','grain','balanced'][(i * 7 + Math.floor(i / 8)) % 5];
-      game.tiles.push({ id: i, name: name, terrain: terrain, owner: -1, militia: 9 + (i * 7) % 12,
+      game.tiles.push({ id: i, name: name, terrain: terrain, owner: -1, militia: i % 11 === 0 ? 17 + i * 5 % 9 : i % 7 === 0 ? 8 + i * 3 % 6 : 4 + i * 5 % 6,
         site: i % 11 === 0 ? 'camp' : i % 7 === 0 ? 'caravan' : i % 3 === 0 ? 'farm' : 'wild',
         stock: { wood: 120 + i % 7 * 29, clay: 110 + i % 5 * 25, iron: 90 + i % 4 * 22, grain: 140 + i % 6 * 34 },
         garrison: blankTroops(), fortifyUntil: 0, evacuateUntil: 0, scoutUntil: 0, ambushUntil: 0,
@@ -364,7 +364,7 @@ function launch(id,tileId,mode,percentage,quiet) {
 
   function casualty(source, ratio) {
     const result = blankTroops();
-    Object.keys(UNITS).forEach(function (k) { result[k] = Math.max(0, Math.floor(source[k] * (1 - ratio))); });
+    Object.keys(UNITS).forEach(function (k) { const raw=(source[k]||0)*ratio; const lost=Math.floor(raw)+(rng()<(raw%1)?1:0);result[k]=Math.max(0,(source[k]||0)-lost); });
     return result;
   }
   function subtractLost(pool, before, after) {
@@ -823,6 +823,15 @@ function renderArmy(){
    out+='</div>';
   }
  }
+ const farmLedger=game.reports.filter(r=>r.attacker===0&&r.mode==='raid').slice(0,12);
+ if(farmLedger.length){
+   out+='<h3 class="subheading">💰 Raid profitability (last 12)</h3><div class="unit-list">';
+   farmLedger.forEach(r=>{
+     const net=sumResources(r.loot)-replacementCost(r.attackers.lost);
+     out+='<div class="entry"><div><strong>'+game.tiles[r.tile].name+'</strong><small>Turn '+r.day+' · Loot '+sumResources(r.loot)+' · Loss costs '+replacementCost(r.attackers.lost)+'</small></div><span class="pill '+(net>=0?'pact':'war')+'">'+(net>=0?'+':'')+net+'</span></div>';
+   });
+   out+='</div>';
+ }
  out+='<h3 class="subheading">Troops in motion</h3><div class="mission-list">';
  const moving=game.missions.filter(m=>m.owner===0||(!m.returnTrip&&game.tiles[m.tile].owner===0));
  if(!moving.length)out+='<p class="muted-note">No marching armies. Select a target on the map or send reinforcements.</p>';
@@ -869,6 +878,11 @@ function renderArmy(){
       '<div><small>Survivors</small><div class="battle-units">' + reportUnits(values.survived) + '</div></div>' +
       '</div></div>';
   }
+  function replacementCost(lost) {
+    return Object.keys(UNITS).reduce(function(total,k){
+      return total+(lost[k]||0)*sumResources(UNITS[k].cost);
+    },0);
+  }
   function renderReports() {
     let out = '<div class="workspace-body"><p class="section-intro">📜 Your offensive and defensive battles: forces committed, survivors, losses, plunder and terrain effects.</p>';
     if (!game.reports.length) return out + '<p class="muted-note">No battles yet. Raid a nearby site or prepare to defend against enemy attacks.</p></div>';
@@ -887,6 +901,8 @@ function renderArmy(){
       if (r.militia.sent) out += '<div class="militia-row">🛡️ Local militia · Committed: <strong>' + r.militia.sent + '</strong> · Killed: <strong>' + r.militia.lost + '</strong> · Survivors: <strong>' + r.militia.survived + '</strong></div>';
       const total = RES.reduce(function (n, x) { return n + (r.loot[x.key] || 0); }, 0);
       out += '<div class="militia-row">'+(r.mode==='raid'?'💰 Raid':r.mode==='siege'?'🏰 Siege':'🗡️ Field attack')+' · '+(r.terrain?TERRAIN[r.terrain].label:'Unknown terrain')+' · Supply '+Math.round((r.supply||1)*100)+'% · Carry capacity '+(r.carryCapacity||0)+'</div>';
+      const net=sumResources(r.loot)-replacementCost(r.attackers.lost);
+      out += '<div class="militia-row">💰 Loot value: '+sumResources(r.loot)+' · Attacker losses: '+replacementCost(r.attackers.lost)+' · Net raid result: '+(net>=0?'+':'')+net+'</div>';
       out += '<div class="loot-row"><strong>' + (total ? '💰 Resources looted' : '📦 Resources looted: none') + '</strong>' +
         (total ? '<span>' + costText(r.loot) + '</span><small>' + (defending ? 'Taken from your treasury by the raiders.' : 'Carried by surviving raiders; delivered when they return.') + '</small>' : '') + '</div>';
       out += '</article>';
