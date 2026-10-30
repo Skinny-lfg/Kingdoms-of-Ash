@@ -13,6 +13,15 @@
 
 A gravação é automática via `localStorage`, **apenas neste navegador e dispositivo**. Ao reabrir o jogo, a simulação permanece em pausa. O botão **Nova campanha** substitui o save após confirmação.
 
+## Navegação simplificada (atualização UX)
+
+- O menu **Aldeias · Exército · Diplomacia · Ranking · Crónicas** fica horizontal, libertando espaço para o mapa.
+- O cartão **O que fazer a seguir** sugere os primeiros três objetivos (melhorar produção, recrutar tropas e fundar outra aldeia), sem gastar recursos automaticamente.
+- **Clica num território no mapa:** a ficha mostra apenas as ações adequadas. Aldeia tua: produção, edifícios/defesa e recrutamento. Terreno neutro: colonização e pilhagem. Reino rival: diplomacia, saque e conquista.
+- As construções estão separadas em **Produção** e **Edifícios e defesa**, sem alterar as regras de construção.
+- No telemóvel, o painel de ações surge imediatamente abaixo do mapa; **Voltar ao mapa** regressa à escolha de territórios.
+- O progresso guardado na v0.1 continua válido. Nenhuma ação de navegação consome recursos; os botões que gastam recursos continuam explícitos.
+
 ## O que já está implementado
 
 - **Mapa:** 40 províncias, com terreno, especializações de produção e fronteiras controladas por seis facções (tu + cinco governantes rivais).
