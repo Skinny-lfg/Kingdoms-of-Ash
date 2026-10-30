@@ -1,36 +1,39 @@
 (function () {
   'use strict';
 
-  const SAVE_KEY = 'kingdoms-of-ash-v01';
-  const VERSION = 1;
+  const SAVE_KEY = 'kingdoms-of-ash-v04';
+  const LEGACY_SAVE_KEY = 'kingdoms-of-ash-v03';
+  const PAGES_V03_SAVE_KEY = 'kingdoms-of-ash-v03-pages';
+  const FIRST_SAVE_KEY = 'kingdoms-of-ash-v01';
+  const VERSION = 2;
   const OWNER = 'Skinny-lfg/Kingdoms-of-Ash';
   const TERRAIN = {
-    wood: { label: 'Bosques', icon: '♠', resource: 'wood' },
-    clay: { label: 'Barro vermelho', icon: '◈', resource: 'clay' },
-    iron: { label: 'Montanhas de ferro', icon: '⛰', resource: 'iron' },
-    grain: { label: 'Planícies férteis', icon: '❋', resource: 'grain' },
-    balanced: { label: 'Terras mistas', icon: '✧', resource: null }
+    wood: { label: 'Bosques', icon: '🌲', resource: 'wood' },
+    clay: { label: 'Barro vermelho', icon: '🧱', resource: 'clay' },
+    iron: { label: 'Montanhas de ferro', icon: '⛰️', resource: 'iron' },
+    grain: { label: 'Planícies férteis', icon: '🌾', resource: 'grain' },
+    balanced: { label: 'Terras mistas', icon: '🌿', resource: null }
   };
   const RES = [
-    { key: 'wood', label: 'Madeira', icon: '♠' },
-    { key: 'clay', label: 'Barro', icon: '◈' },
-    { key: 'iron', label: 'Ferro', icon: '⚒' },
-    { key: 'grain', label: 'Cereais', icon: '❋' }
+    { key: 'wood', label: 'Madeira', icon: '🌲' },
+    { key: 'clay', label: 'Barro', icon: '🧱' },
+    { key: 'iron', label: 'Ferro', icon: '⛏️' },
+    { key: 'grain', label: 'Cereais', icon: '🌾' }
   ];
   const UNITS = {
-    spear: { label: 'Lanceiros', icon: '♜', attack: 2, defense: 5, upkeep: 0.23, cost: { wood: 29, clay: 23, iron: 14, grain: 22 }, unlock: 1 },
-    sword: { label: 'Espadachins', icon: '⚔', attack: 6, defense: 3, upkeep: 0.33, cost: { wood: 23, clay: 18, iron: 36, grain: 25 }, unlock: 1 },
-    rider: { label: 'Cavaleiros', icon: '♞', attack: 11, defense: 4, upkeep: 0.65, cost: { wood: 53, clay: 46, iron: 52, grain: 43 }, unlock: 2 },
-    siege: { label: 'Catapultas', icon: '⚒', attack: 16, defense: 2, upkeep: 1.2, cost: { wood: 125, clay: 115, iron: 135, grain: 70 }, unlock: 3 }
+    spear: { label: 'Lanceiros', icon: '🛡️', attack: 2, defense: 5, upkeep: 0.23, cost: { wood: 29, clay: 23, iron: 14, grain: 22 }, unlock: 1 },
+    sword: { label: 'Espadachins', icon: '⚔️', attack: 6, defense: 3, upkeep: 0.33, cost: { wood: 23, clay: 18, iron: 36, grain: 25 }, unlock: 1 },
+    rider: { label: 'Cavaleiros', icon: '🐎', attack: 11, defense: 4, upkeep: 0.65, cost: { wood: 53, clay: 46, iron: 52, grain: 43 }, unlock: 2 },
+    siege: { label: 'Catapultas', icon: '💣', attack: 16, defense: 2, upkeep: 1.2, cost: { wood: 125, clay: 115, iron: 135, grain: 70 }, unlock: 3 }
   };
   const BUILDINGS = {
     wood: { label: 'Bosques de corte', desc: 'Aumenta a produção de madeira.', base: { wood: 55, clay: 75, iron: 40, grain: 45 } },
     clay: { label: 'Barreiros', desc: 'Aumenta a produção de barro.', base: { wood: 75, clay: 50, iron: 45, grain: 40 } },
     iron: { label: 'Minas de ferro', desc: 'Aumenta a produção de ferro.', base: { wood: 85, clay: 65, iron: 45, grain: 40 } },
     grain: { label: 'Campos de cereais', desc: 'Aumenta a produção de cereais.', base: { wood: 65, clay: 60, iron: 45, grain: 35 } },
-    barracks: { label: 'Quartel', desc: 'Nível 2: cavalaria. Nível 3: catapultas.', base: { wood: 105, clay: 115, iron: 100, grain: 65 } },
-    wall: { label: 'Paliçada', desc: 'Fortalece a defesa desta aldeia.', base: { wood: 95, clay: 85, iron: 65, grain: 60 } },
-    market: { label: 'Mercado', desc: 'Aumenta ligeiramente todos os rendimentos.', base: { wood: 85, clay: 95, iron: 80, grain: 70 } }
+    barracks: { icon: '⚔️', label: 'Quartel', desc: 'Nível 2: cavalaria. Nível 3: catapultas.', base: { wood: 105, clay: 115, iron: 100, grain: 65 } },
+    wall: { icon: '🏰', label: 'Paliçada', desc: 'Fortalece a defesa desta aldeia.', base: { wood: 95, clay: 85, iron: 65, grain: 60 } },
+    market: { icon: '⚖️', label: 'Mercado', desc: 'Aumenta ligeiramente todos os rendimentos.', base: { wood: 85, clay: 95, iron: 80, grain: 70 } }
   };
   const FACTIONS = [
     { name: 'Coroa de Cinza', short: 'TU', color: '#e4bd78', style: 'player', capital: 19 },
@@ -48,9 +51,8 @@
     'Porto Mercante','Sombra Longa','Floresta Oca','Passagem Sul','Campo das Lanternas','Túmulo do Rei','Lago de Ferro','Morro das Cinzas'
   ];
   const SETTLE_BASE = { wood: 330, clay: 330, iron: 260, grain: 360 };
-  const SPEED_MS = { 1: 16000, 5: 3200, 20: 800 };
   const $ = function (id) { return document.getElementById(id); };
-  let game, accumulated = 0, toastTimeout = null;
+  let game, toastTimeout = null;
 
   function blankTroops() { return { spear: 0, sword: 0, rider: 0, siege: 0 }; }
   function blankResources(n) { return { wood: n || 0, clay: n || 0, iron: n || 0, grain: n || 0 }; }
@@ -121,8 +123,8 @@
   function buildingCost(t, key) {
     return Object.fromEntries(RES.map(function (r) { return [r.key, Math.round(BUILDINGS[key].base[r.key] * Math.pow(1.48, t.levels[key] || 0))]; }));
   }
-  function message(title, detail, tone) {
-    game.logs.unshift({ day: game.day, title: title, detail: detail || '', tone: tone || 'normal' });
+  function message(title, detail, tone, reportId) {
+    game.logs.unshift({ day: game.day, title: title, detail: detail || '', tone: tone || 'normal', reportId: reportId || null });
     if (game.logs.length > 150) game.logs.length = 150;
   }
   function notice(text, bad) {
@@ -135,8 +137,8 @@
   function createGame() {
     game = {
       version: VERSION, seed: 1837659, day: 1, speed: 0, selected: 19, tab: 'village',
-      force: 75, villageMode: 'production', buildingFocus: 'wood', missionSeq: 0, ended: false, event: null, lastEventDay: 0,
-      relations: {}, missions: [], dominance: {}, logs: [], factions: [], tiles: []
+      force: 75, villageMode: 'production', buildingFocus: 'wood', missionSeq: 0, reportSeq: 0, ended: false, endSummaryDismissed: false, event: null, lastEventDay: 0,
+      relations: {}, missions: [], reports: [], dominance: {}, logs: [], factions: [], tiles: []
     };
     FACTIONS.forEach(function (spec, id) {
       game.factions.push({
@@ -160,7 +162,7 @@
       t.levels = { wood: 2, clay: 2, iron: 2, grain: 2, barracks: 1, wall: 1, market: 0 };
     });
     message('O continente desperta', 'Seis governantes reclamam as suas primeiras aldeias. Apenas um poderá unificar as Terras de Cinza.');
-    message('A coroa é tua', 'Constrói, recruta, expande, negoceia e disputa o primeiro lugar. O tempo começa em pausa.');
+    message('A coroa é tua', 'Constrói, recruta, expande, negoceia e disputa o primeiro lugar. Termina o turno para os rivais agirem.');
     save();
   }
   function save() {
@@ -168,9 +170,18 @@
   }
   function load() {
     try {
-      const data = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-      if (data && data.version === VERSION && Array.isArray(data.tiles) && data.tiles.length === 40 && data.factions.length === 6) {
-        game = data; game.speed = 0; game.force = game.force || 75; game.villageMode = game.villageMode || 'production'; game.buildingFocus = game.buildingFocus || (game.villageMode === 'infrastructure' ? 'barracks' : 'wood'); if (!['village','map','army','diplomacy','ranking','chronicle'].includes(game.tab)) game.tab = 'village'; return true;
+      const data = JSON.parse(localStorage.getItem(SAVE_KEY) || localStorage.getItem(PAGES_V03_SAVE_KEY) || localStorage.getItem(LEGACY_SAVE_KEY) || localStorage.getItem(FIRST_SAVE_KEY) || 'null');
+      if (data && (data.version === 1 || data.version === VERSION) && Array.isArray(data.tiles) && data.tiles.length === 40 && Array.isArray(data.factions) && data.factions.length === 6) {
+        game = data;
+        game.version = VERSION;
+        game.speed = 0; // Save antigo: desativa a progressão automática.
+        game.force = game.force || 75;
+        game.villageMode = game.villageMode || 'production';
+        game.buildingFocus = game.buildingFocus || (game.villageMode === 'production' ? 'wood' : 'barracks');
+        game.reports = Array.isArray(game.reports) ? game.reports : [];
+        game.endSummaryDismissed = !!game.endSummaryDismissed;
+        game.reportSeq = Number.isInteger(game.reportSeq) ? game.reportSeq : game.reports.reduce(function (n, r) { return Math.max(n, r.id || 0); }, 0);
+        return true;
       }
     } catch (_) { /* guardar jogo novo */ }
     createGame(); return false;
@@ -224,7 +235,10 @@
       setStance(id, t.owner, 'war', -85);
       message('Guerra declarada', game.factions[id].name + ' atacou o domínio de ' + game.factions[t.owner].name + '.', 'war');
     }
-    if (!quiet) message('Exército em marcha', format(armyCount(troops)) + ' soldados seguem para ' + t.name + ' (' + mode + ').');
+    if (t.owner === 0 && id !== 0) {
+      message('🚨 Ataque inimigo a caminho', game.factions[id].name + ' enviou ' + format(armyCount(troops)) + ' tropas para ' + t.name + '. Chegam em ' + travelDays(id, tileId) + ' turno(s).', 'incoming');
+    }
+    if (!quiet) message(id === 0 ? '⚔️ Exército enviado' : 'Exército em marcha', format(armyCount(troops)) + ' soldados seguem para ' + t.name + ' (' + mode + ').', id === 0 ? 'outgoing' : 'normal');
     return true;
   }
   function casualty(source, ratio) {
@@ -243,18 +257,42 @@
     Object.keys(UNITS).forEach(function (k) { result[k] = Math.ceil(pool[k] / sites); });
     return result;
   }
+  function troopLoss(before, after) {
+    const lost = blankTroops();
+    Object.keys(UNITS).forEach(function (k) { lost[k] = Math.max(0, (before[k] || 0) - (after[k] || 0)); });
+    return lost;
+  }
+  function recordBattle(battle) {
+    if (battle.attacker !== 0 && battle.defender !== 0) return;
+    const report = Object.assign({ id: ++game.reportSeq, day: game.day, read: false }, battle);
+    game.reports.unshift(report);
+    if (game.reports.length > 120) game.reports.length = 120;
+    const defending = report.defender === 0;
+    const success = defending ? !report.victory : report.victory;
+    const icon = defending ? (success ? '🛡️' : '🚨') : '⚔️';
+    const title = defending
+      ? (success ? 'Defesa vitoriosa' : report.conquered ? 'Aldeia conquistada pelo inimigo' : 'Aldeia saqueada')
+      : (success ? (report.conquered ? 'Conquista vitoriosa' : 'Ataque vitorioso') : 'Ataque repelido');
+    const rival = defending ? report.attacker : report.defender;
+    const enemyName = rival < 0 ? 'milícias neutras' : game.factions[rival].name;
+    const lost = defending ? report.defenders.lost : report.attackers.lost;
+    const detail = (defending ? 'Defendeste ' : 'Atacaste ') + game.tiles[report.tile].name +
+      ' contra ' + enemyName + '. Perdas: ' + format(armyCount(lost)) +
+      ' soldados. Saque: ' + costText(report.loot) + '.';
+    message(icon + ' ' + title, detail, defending ? 'incoming' : 'outgoing', report.id);
+  }
   function resolveMission(m) {
     const target = game.tiles[m.tile];
     if (m.returnTrip) {
       Object.keys(UNITS).forEach(function (k) { game.factions[m.owner].troops[k] += m.troops[k]; });
       give(m.owner, m.loot);
-      if (m.owner === 0) message('Tropas regressaram', 'Os sobreviventes voltaram de ' + target.name + ' com ' + costText(m.loot) + '.');
+      if (m.owner === 0) message('🏠 Tropas regressaram', 'Os sobreviventes voltaram de ' + target.name + ' com ' + costText(m.loot) + '.');
       return true;
     }
     if (m.mode === 'settle') {
       if (target.owner === -1) {
         target.owner = m.owner; target.militia = 0; target.levels = freshTileLevels();
-        message('Nova aldeia fundada', game.factions[m.owner].name + ' estabeleceu uma aldeia em ' + target.name + '.');
+        message('🏡 Nova aldeia fundada', game.factions[m.owner].name + ' estabeleceu uma aldeia em ' + target.name + '.');
       } else {
         const refund = Object.fromEntries(RES.map(function (r) { return [r.key, Math.floor(SETTLE_BASE[r.key] * 0.4)]; }));
         give(m.owner, refund);
@@ -263,22 +301,25 @@
       return true;
     }
     const defender = target.owner;
-    const defenders = defendTroops(defender);
-    const baseDefense = target.militia * 2.4 + armyPower(defenders, true) + target.levels.wall * 16 + 8;
+    const attackersBefore = clone(m.troops);
+    const defendersBefore = defendTroops(defender);
+    const militiaBefore = defender === -1 ? target.militia : 0;
+    const baseDefense = target.militia * 2.4 + armyPower(defendersBefore, true) + target.levels.wall * 16 + 8;
     const attack = armyPower(m.troops, false) * (0.88 + rng() * 0.28);
     const victory = attack >= baseDefense;
     const atkLoss = victory ? Math.min(0.38, 0.09 + baseDefense / (attack + 1) * 0.19) : Math.min(0.92, 0.44 + baseDefense / (attack + baseDefense + 1) * 0.35);
     const defLoss = victory ? 0.68 + rng() * 0.31 : 0.08 + rng() * 0.22;
     m.troops = casualty(m.troops, atkLoss);
-    if (defender >= 0) subtractLost(game.factions[defender].troops, defenders, casualty(defenders, defLoss));
+    const defendersAfter = casualty(defendersBefore, defLoss);
+    if (defender >= 0) subtractLost(game.factions[defender].troops, defendersBefore, defendersAfter);
     else target.militia = Math.floor(target.militia * (1 - defLoss));
+    let conquered = false;
     if (victory) {
-      const conquer = m.mode === 'conquer' && m.troops.siege >= 2 && defender >= 0 && attack >= baseDefense * 1.15;
-      if (conquer) {
-        target.owner = m.owner;
-        target.militia = 0; target.construction = null;
+      conquered = m.mode === 'conquer' && m.troops.siege >= 2 && defender >= 0 && attack >= baseDefense * 1.15;
+      if (conquered) {
+        target.owner = m.owner; target.militia = 0; target.construction = null;
         Object.keys(target.levels).forEach(function (k) { target.levels[k] = Math.max(k === 'wall' || k === 'market' ? 0 : 1, target.levels[k] - 1); });
-        message('Província conquistada', game.factions[m.owner].name + ' tomou ' + target.name + ' a ' + game.factions[defender].name + '!', 'war');
+        message('🏰 Província conquistada', game.factions[m.owner].name + ' tomou ' + target.name + ' a ' + game.factions[defender].name + '!', 'war');
       } else {
         const victim = defender >= 0 ? game.factions[defender] : null;
         RES.forEach(function (r) {
@@ -286,11 +327,19 @@
           m.loot[r.key] += n;
           if (victim) victim.resources[r.key] -= n;
         });
-        message('Incursão vitoriosa', game.factions[m.owner].name + ' saqueou ' + target.name + '.', 'war');
+        if (defender !== 0 && m.owner !== 0) message('Incursão vitoriosa', game.factions[m.owner].name + ' saqueou ' + target.name + '.', 'war');
       }
     } else {
-      message('Exército repelido', 'Os defensores de ' + target.name + ' travaram o ataque de ' + game.factions[m.owner].name + '.', 'war');
+      if (defender !== 0 && m.owner !== 0) message('Exército repelido', 'Os defensores de ' + target.name + ' travaram o ataque de ' + game.factions[m.owner].name + '.', 'war');
     }
+    recordBattle({
+      attacker: m.owner, defender: defender, tile: m.tile, mode: m.mode,
+      victory: victory, conquered: conquered,
+      attackers: { sent: attackersBefore, survived: clone(m.troops), lost: troopLoss(attackersBefore, m.troops) },
+      defenders: { sent: defendersBefore, survived: defendersAfter, lost: troopLoss(defendersBefore, defendersAfter) },
+      militia: { sent: militiaBefore, survived: defender === -1 ? target.militia : 0, lost: defender === -1 ? militiaBefore - target.militia : 0 },
+      loot: clone(m.loot)
+    });
     m.returnTrip = true; m.eta = travelDays(m.owner, m.tile);
     return false;
   }
@@ -384,7 +433,7 @@
     });
     if (!nearby.length) return;
     const rival = nearby[rand(nearby.length)];
-    game.event = { faction: rival.id, type: 'ultimatum' }; game.lastEventDay = game.day; game.speed = 0;
+    game.event = { faction: rival.id, type: 'ultimatum' }; game.lastEventDay = game.day;
     message('Ultimato diplomático', rival.name + ' exige um tributo para manter a paz.');
   }
   function checkEnd() {
@@ -393,12 +442,11 @@
       game.dominance[f.id] = ownTiles(f.id).length >= 10 && leaders[0].id === f.id ? (game.dominance[f.id] || 0) + 1 : 0;
       if (game.dominance[f.id] >= 4 && !game.ended) {
         game.ended = { winner: f.id, reason: 'dominance' };
-        game.speed = 0;
         message('O continente tem um soberano', f.name + ' dominou pelo menos 10 províncias e liderou o ranking durante quatro dias.');
       }
     });
     if (!ownTiles(0).length && !game.ended) {
-      game.ended = { winner: -1, reason: 'defeat' }; game.speed = 0;
+      game.ended = { winner: -1, reason: 'defeat' };
       message('A coroa caiu', 'A tua última aldeia foi conquistada. A campanha terminou.', 'war');
     }
   }
@@ -419,14 +467,48 @@
       const n = rates[r.key]; return '<div class="resource"><div class="resource-icon">' + r.icon + '</div><div class="resource-main"><div class="label">' + r.label + '</div><div class="value">' + format(player().resources[r.key]) + '</div></div><span class="income ' + (n < 0 ? 'negative' : '') + '">' + (n >= 0 ? '+' : '') + format(n) + '/d</span></div>';
     }).join('');
   }
+  function incomingMarches() {
+    return game.missions.filter(function (m) { return m.owner !== 0 && !m.returnTrip && game.tiles[m.tile].owner === 0 && m.mode !== 'settle'; });
+  }
+  function renderMilitaryStrip() {
+    const incoming = incomingMarches();
+    const outgoing = game.missions.filter(function (m) { return m.owner === 0 && !m.returnTrip; });
+    const unread = game.reports.filter(function (r) { return !r.read; }).length;
+    let html = '<div class="military-label">🪖 <strong>Exército disponível</strong></div><div class="military-units">';
+    Object.keys(UNITS).forEach(function (k) {
+      html += '<span class="military-unit" title="' + UNITS[k].label + '">' + UNITS[k].icon + ' <strong>' + format(player().troops[k]) + '</strong></span>';
+    });
+    html += '</div><div class="military-activity">';
+    if (incoming.length) {
+      const soonest = Math.min.apply(null, incoming.map(function (m) { return m.eta; }));
+      html += '<span class="incoming-alert" role="status">🚨 ' + incoming.length + ' ataque(s) a caminho · ' + soonest + ' turno(s)</span>';
+    } else html += '<span class="calm-alert">🛡️ Sem ataques a caminho</span>';
+    if (outgoing.length) html += '<span>⚔️ ' + outgoing.length + ' missão(ões) enviadas</span>';
+    html += '</div><div class="military-action">' + actionButton('📜 Relatórios' + (unread ? ' (' + unread + ')' : ''), 'open-reports', '', unread ? 'primary' : 'subtle small') + '</div>';
+    $('military-strip').innerHTML = html;
+    const badge = $('report-badge');
+    badge.textContent = String(unread);
+    badge.classList.toggle('hidden', !unread);
+  }
   function renderMap() {
     $('world-map').innerHTML = game.tiles.map(function (t) {
       const f = t.owner < 0 ? null : game.factions[t.owner];
-      const symbol = f ? (t.id === FACTIONS[f.id].capital ? '♛' : '♜') : TERRAIN[t.terrain].icon;
+      const symbol = f ? (t.id === FACTIONS[f.id].capital ? '🏰' : '🏘️') : TERRAIN[t.terrain].icon;
+      const stance = f && f.id !== 0 ? relation(0, f.id).stance : null;
+      const danger = incomingMarches().some(function (m) { return m.tile === t.id; });
+      const status = danger ? '🚨' : stance === 'war' ? '⚔️' : stance === 'alliance' ? '🤝' : stance === 'pact' ? '🕊️' : '';
       const style = f ? ' style="--owner:' + f.color + '"' : '';
-      return '<button class="tile terrain-' + t.terrain + (f ? ' owned' : '') + (t.id === game.selected ? ' selected' : '') + '"' + style + ' type="button" data-tile="' + t.id + '" aria-pressed="' + (t.id === game.selected) + '" title="' + t.name + ' — ' + (f ? f.name : 'Terras neutras') + '"><span class="tile-symbol">' + symbol + '</span><span class="tile-name">' + t.name + '</span><span class="tile-level">' + (f ? 'Nv. ' + (t.levels.wood + t.levels.clay + t.levels.iron + t.levels.grain) : '•') + '</span>' + (f ? '<span class="tile-marker">' + f.short + '</span>' : '') + '</button>';
+      return '<button class="tile terrain-' + t.terrain + (f ? ' owned' : '') + (t.id === game.selected ? ' selected' : '') +
+        (danger ? ' tile-threat' : '') + '"' + style + ' type="button" data-tile="' + t.id +
+        '" aria-pressed="' + (t.id === game.selected) + '" title="' + t.name + ' — ' + (f ? f.name : 'Terras neutras') +
+        '"><span class="tile-symbol">' + symbol + '</span><span class="tile-terrain" title="' + TERRAIN[t.terrain].label + '">' + TERRAIN[t.terrain].icon +
+        '</span><span class="tile-name">' + t.name + '</span><span class="tile-level">' + (f ? 'Nv. ' + (t.levels.wood + t.levels.clay + t.levels.iron + t.levels.grain) : '•') +
+        '</span>' + (f ? '<span class="tile-marker">' + f.short + '</span>' : '') +
+        (status ? '<span class="tile-status">' + status + '</span>' : '') + '</button>';
     }).join('');
-    $('map-legend').innerHTML = game.factions.map(function (f) { return '<span class="legend-item"><i class="legend-dot" style="--dot:' + f.color + '"></i>' + f.name + '</span>'; }).join('') + '<span class="legend-item"><i class="legend-dot" style="--dot:#50635d"></i>Neutro</span>';
+    $('map-legend').innerHTML = game.factions.map(function (f) {
+      return '<span class="legend-item"><i class="legend-dot" style="--dot:' + f.color + '"></i>' + f.name + '</span>';
+    }).join('') + '<span class="legend-item">🌿 Neutro</span><span class="legend-item">⚔️ Guerra</span><span class="legend-item">🤝 Aliança</span><span class="legend-item">🚨 Sob ataque</span>';
   }
   function fact(label, value) { return '<div class="fact-row"><span>' + label + '</span><strong>' + value + '</strong></div>'; }
   function actionButton(label, action, attrs, style, disabled) {
@@ -440,22 +522,27 @@
     const desc = own ? 'Esta aldeia produz para a tua coroa.' : f ? 'Esta aldeia pertence a outro império.' : 'Podes colonizar este território ou atacá-lo para obter recursos.';
     let body = '<div class="province-body"><div class="province-name"><span class="province-emblem">' + (f ? '♜' : TERRAIN[t.terrain].icon) + '</span><div><h3>' + t.name + '</h3><p>' + (f ? f.name : 'Terras neutras') + '</p></div></div>';
     body += '<p class="province-desc">' + TERRAIN[t.terrain].label + '. ' + desc + '</p>';
-    body += fact('Terreno', TERRAIN[t.terrain].label);
+    body += fact('Terreno', TERRAIN[t.terrain].icon + ' ' + TERRAIN[t.terrain].label);
+    if (t.owner >= 0) {
+      body += '<div class="garrison"><strong>🛡️ Guarnição ' + (own ? 'disponível para defesa' : '(estimada)') + '</strong><div class="garrison-units">' +
+        Object.keys(UNITS).map(function (k) { return '<span>' + UNITS[k].icon + ' ' + format(defendTroops(t.owner)[k]) + '</span>'; }).join('') +
+        '</div></div>';
+    } else body += fact('Defensores neutros', '🛡️ ' + t.militia + ' milicianos');
     if (!own) body += fact('Distância', dist === 999 ? 'Sem acesso' : dist + ' espaços');
-    body += fact('Defesa', f ? 'Paliçada ' + t.levels.wall : t.militia + ' milicianos');
+    body += fact('Fortificação', f ? '🏰 Paliçada nível ' + t.levels.wall : 'Sem muralha');
     if (t.construction) body += fact('Em construção', BUILDINGS[t.construction.key].label + ' · ' + t.construction.left + 'd');
     body += '<div class="action-stack">';
     if (own) {
       body += '<p class="context-label">O que queres fazer?</p><div class="action-group">';
-      body += actionButton('⌂ Melhorar produção', 'open-production', '', 'primary');
-      body += actionButton('⚒ Edifícios e defesas', 'open-infrastructure', '', 'subtle');
-      body += actionButton('⚔ Recrutar tropas', 'open-army', '', 'subtle');
+      body += actionButton('🌾 Melhorar produção', 'open-production', '', 'primary');
+      body += actionButton('🏰 Edifícios e defesas', 'open-infrastructure', '', 'subtle');
+      body += actionButton('⚔️ Recrutar tropas', 'open-army', '', 'subtle');
       body += '</div><p class="context-tip">Escolhe uma opção. Os campos aumentam os recursos por dia; o quartel desbloqueia novas unidades.</p>';
     } else if (!game.ended) {
       if (t.owner === -1) {
         const cost = settleCost(0);
         body += '<p class="context-label">Expansão</p><div class="action-group">';
-        body += actionButton('✦ Fundar aldeia', 'settle', '', 'primary', dist > 3 || !canAfford(0, cost));
+        body += actionButton('🏡 Fundar aldeia', 'settle', '', 'primary', dist > 3 || !canAfford(0, cost));
         body += '</div><span class="action-hint">Custo: ' + costText(cost) + '. Alcance: até 3 espaços.</span>';
       } else {
         const stance = relation(0, t.owner).stance;
@@ -468,7 +555,7 @@
       body += '<input class="force-slider" type="range" id="force-slider" min="25" max="100" step="25" value="' + game.force + '" aria-label="Percentagem de tropas enviadas">';
       const protectedTarget = f && ['pact','alliance'].includes(relation(0, f.id).stance);
       body += '<div class="action-group">';
-      body += actionButton('⚔ Saquear recursos', 'raid', '', 'subtle', armyCount(extractArmy(0, game.force)) < 3 || protectedTarget);
+      body += actionButton('⚔️ Saquear recursos', 'raid', '', 'subtle', armyCount(extractArmy(0, game.force)) < 3 || protectedTarget);
       if (f) body += actionButton('♜ Conquistar aldeia', 'conquer', '', 'danger', player().troops.siege < 2 || protectedTarget);
       body += '</div><span class="action-hint">Os ataques demoram dias. Para conquistar são precisas catapultas e uma vitória decisiva.</span>';
     }
@@ -486,11 +573,12 @@
       const lv = focused.levels[k]; const cost = buildingCost(focused, k);
       const can = !focused.construction && lv < 5 && canAfford(0, cost);
       const status = focused.construction && focused.construction.key === k ? 'Em obras · ' + focused.construction.left + 'd' : lv >= 5 ? 'Máximo' : 'Nível ' + lv;
-      out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Nível máximo atingido') + '</small></div>' + actionButton('Melhorar', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
+      out += '<div class="entry ' + (game.buildingFocus === k ? 'selected-building' : '') + '"><div><strong>' + BUILDINGS[k].icon + ' ' + BUILDINGS[k].label + '</strong> <span class="pill neutral">' + status + '</span><small>' + BUILDINGS[k].desc + '<br>' + (lv < 5 ? costText(cost) : 'Nível máximo atingido') + '</small></div>' + actionButton('Melhorar', 'build', 'data-key="' + k + '" data-village="' + focused.id + '"', 'small', !can) + '</div>';
     });
     out += '</div>';
     return out + '</div></div>';
   }
+
   function renderArmy() {
     const f = player();
     let out = '<div class="workspace-body"><p class="section-intro">Recruta unidades e envia forças a partir do mapa. Os soldados enviados deixam temporariamente o exército disponível.</p><div class="stat-grid">';
@@ -531,12 +619,49 @@
     out += '</div><h3 class="subheading">Corrida pela coroa</h3><p class="muted-note">' + leader.name + ' lidera o ranking com ' + ownTiles(leader.id).length + ' aldeias. Domínio consolidado: ' + (game.dominance[leader.id] || 0) + '/4 dias. É necessário possuir 10 aldeias para iniciar esta contagem.</p>';
     return out + '</div>';
   }
+  function reportUnits(units) {
+    return Object.keys(UNITS).map(function (k) {
+      return '<span title="' + UNITS[k].label + '">' + UNITS[k].icon + ' <strong>' + format(units[k] || 0) + '</strong></span>';
+    }).join('');
+  }
+  function battleSide(title, values) {
+    return '<div class="battle-side"><h4>' + title + '</h4><div class="battle-columns">' +
+      '<div><small>Envolvidas</small><div class="battle-units">' + reportUnits(values.sent) + '</div></div>' +
+      '<div><small>Perdidas</small><div class="battle-units lost">' + reportUnits(values.lost) + '</div></div>' +
+      '<div><small>Sobreviventes</small><div class="battle-units">' + reportUnits(values.survived) + '</div></div>' +
+      '</div></div>';
+  }
+  function renderReports() {
+    let out = '<div class="workspace-body"><p class="section-intro">📜 Histórico das tuas ofensivas e defesas. Os números mostram tropas efetivamente envolvidas, baixas e recursos levados após o combate. As marchas ainda a caminho não aparecem aqui.</p>';
+    if (!game.reports.length) return out + '<p class="muted-note">Ainda não ocorreram batalhas contra a tua coroa. Envia um ataque ou espera por uma ofensiva rival.</p></div>';
+    game.reports.forEach(function (r) {
+      const defending = r.defender === 0;
+      const success = defending ? !r.victory : r.victory;
+      const status = success ? 'Vitória' : 'Derrota';
+      const side = defending ? '🚨 DEFESA' : '⚔️ ATAQUE';
+      const attacker = game.factions[r.attacker].name;
+      const defender = r.defender < 0 ? 'Milícias neutras' : game.factions[r.defender].name;
+      out += '<article id="battle-report-' + r.id + '" class="battle-report ' + (success ? 'battle-win' : 'battle-loss') + '">';
+      out += '<div class="battle-header"><div><span class="battle-type">' + side + ' · TURNO ' + r.day + '</span><h3>' + game.tiles[r.tile].name + ' <span class="pill ' + (success ? 'pact' : 'war') + '">' + (r.conquered ? '🏰 Conquista' : status) + '</span></h3></div><span class="battle-direction">' + (defending ? '🛡️ Recebido' : '⚔️ Enviado') + '</span></div>';
+      out += '<p class="battle-summary">' + attacker + ' ⚔️ ' + defender + ' · ' + (r.mode === 'conquer' ? 'Tentativa de conquista' : 'Incursão') + '</p>';
+      out += battleSide('⚔️ Força atacante — ' + attacker, r.attackers);
+      out += battleSide('🛡️ Força defensora — ' + defender, r.defenders);
+      if (r.militia.sent) out += '<div class="militia-row">🛡️ Milícias locais · Envolvidas: <strong>' + r.militia.sent + '</strong> · Mortas: <strong>' + r.militia.lost + '</strong> · Sobreviventes: <strong>' + r.militia.survived + '</strong></div>';
+      const total = RES.reduce(function (n, x) { return n + (r.loot[x.key] || 0); }, 0);
+      out += '<div class="loot-row"><strong>' + (total ? '💰 Recursos saqueados' : '📦 Recursos saqueados: nenhum') + '</strong>' +
+        (total ? '<span>' + costText(r.loot) + '</span><small>' + (defending ? 'Saíram do teu tesouro e foram levados pelo atacante.' : 'Transportados pelos sobreviventes; entram no tesouro quando regressarem.') + '</small>' : '') + '</div>';
+      out += '</article>';
+    });
+    return out + '</div>';
+  }
+  function markReportsRead() {
+    game.reports.forEach(function (r) { r.read = true; });
+  }
   function renderChronicle() {
     return '<div class="workspace-body"><p class="section-intro">Os adversários crescem, negociam e entram em guerra entre si. Cada notícia corresponde a um acontecimento da simulação.</p><div class="chronicle-list">' + game.logs.map(function (l) {
       return '<div class="chronicle-row"><strong class="chronicle-day">DIA ' + l.day + '</strong><div><strong>' + l.title + '</strong><p>' + l.detail + '</p></div></div>';
     }).join('') + '</div></div>';
   }
-
   function renderVillageList() {
     const villages = ownTiles(0);
     $('village-list').innerHTML = villages.length ? villages.map(function (t) {
@@ -575,10 +700,10 @@
     $('scene-ground').innerHTML = out;
   }
   function renderWorkspace() {
-    const titles = { village: ['MELHORIAS DA ALDEIA', game.villageMode === 'production' ? 'Campos de produção' : 'Edifícios e defesa'], map: ['O CONTINENTE', 'Mapa das províncias'], army: ['ESTRATÉGIA MILITAR', 'Exército e marchas'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELO CONTINENTE', 'Ranking dos impérios'], chronicle: ['HISTÓRIA EM MOVIMENTO', 'Relatórios e crónicas'] };
+    const titles = { village: ['MELHORIAS DA ALDEIA', game.villageMode === 'production' ? 'Campos de produção' : 'Edifícios e defesa'], map: ['O CONTINENTE', 'Mapa das províncias'], army: ['ESTRATÉGIA MILITAR', 'Exército e marchas'], diplomacy: ['O JOGO DOS TRONOS', 'Diplomacia'], ranking: ['DISPUTA PELO CONTINENTE', 'Ranking dos impérios'], reports: ['HISTÓRICO MILITAR', '📜 Relatórios de batalha'], chronicle: ['HISTÓRIA EM MOVIMENTO', 'Crónicas do mundo'] };
     const item = titles[game.tab] || titles.village;
     $('workspace-kicker').textContent = item[0]; $('workspace-title').textContent = item[1];
-    const layouts = { village: renderVillage, map: function () { return ''; }, army: renderArmy, diplomacy: renderDiplomacy, ranking: renderRanking, chronicle: renderChronicle };
+    const layouts = { village: renderVillage, map: function () { return ''; }, army: renderArmy, diplomacy: renderDiplomacy, ranking: renderRanking, reports: renderReports, chronicle: renderChronicle };
     $('workspace-content').innerHTML = (layouts[game.tab] || renderVillage)();
     document.querySelectorAll('.nav-button').forEach(function (btn) {
       const selected = btn.dataset.tab === game.tab && (game.tab !== 'village' || btn.dataset.mode === game.villageMode);
@@ -586,17 +711,22 @@
       if (typeof btn.setAttribute === 'function') btn.setAttribute('aria-current', selected ? 'page' : 'false');
     });
   }
+
   function renderDispatches() {
     $('dispatch-list').innerHTML = game.logs.slice(0, 5).map(function (l) {
-      return '<div class="dispatch-item"><span class="dispatch-bullet">' + (l.tone === 'war' ? '⚔' : '✦') + '</span><div><span class="dispatch-time">DIA ' + l.day + '</span><strong>' + l.title + '</strong><p>' + l.detail + '</p></div></div>';
+      const symbol = l.tone === 'incoming' ? '🚨' : l.tone === 'outgoing' ? '⚔️' : l.tone === 'war' ? '🛡️' : '✦';
+      return '<div class="dispatch-item"><span class="dispatch-bullet">' + symbol + '</span><div><span class="dispatch-time">TURNO ' + l.day + '</span><strong>' + l.title + '</strong><p>' + l.detail + '</p>' +
+        (l.reportId ? actionButton('📜 Ver relatório →', 'view-report', 'data-report-id="' + l.reportId + '"', 'small subtle') : '') +
+        '</div></div>';
     }).join('');
   }
   function renderEvent() {
     const node = $('event-layer');
     if (game.ended) {
+      if (game.endSummaryDismissed) { node.classList.add('hidden'); node.innerHTML = ''; return; }
       const victor = game.ended.winner >= 0 ? game.factions[game.ended.winner].name : 'Os reinos rivais';
       node.classList.remove('hidden');
-      node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Fim da campanha"><p class="eyebrow">A ÚLTIMA CRÓNICA</p><h2>' + (game.ended.winner === 0 ? 'A coroa é tua' : 'O império caiu') + '</h2><p>' + victor + ' venceu a campanha. ' + (game.ended.winner === 0 ? 'Conquistaste o direito de governar o continente.' : 'As escolhas dos reinos transformaram o mapa sem piedade.') + ' O mundo chegou ao seu desfecho no dia ' + game.day + '.</p><div class="event-actions">' + actionButton('Começar nova campanha', 'restart', '', 'primary') + '</div></div>';
+      node.innerHTML = '<div class="event-card" role="dialog" aria-modal="true" aria-label="Fim da campanha"><p class="eyebrow">A ÚLTIMA CRÓNICA</p><h2>' + (game.ended.winner === 0 ? 'A coroa é tua' : 'O império caiu') + '</h2><p>' + victor + ' venceu a campanha. ' + (game.ended.winner === 0 ? 'Conquistaste o direito de governar o continente.' : 'As escolhas dos reinos transformaram o mapa sem piedade.') + ' O mundo chegou ao seu desfecho no dia ' + game.day + '.</p><div class="event-actions">' + actionButton('📜 Ver relatórios', 'review-end', '', 'subtle') + actionButton('Começar nova campanha', 'restart', '', 'primary') + '</div></div>';
       return;
     }
     if (!game.event) { node.classList.add('hidden'); node.innerHTML = ''; return; }
@@ -614,7 +744,7 @@
       title = 'A campanha terminou'; detail = 'Consulta os resultados e começa uma nova campanha quando quiseres.'; label = 'Ver ranking'; action = 'open-ranking';
     } else if (!built) {
       title = '1. Faz a tua aldeia crescer';
-      detail = 'Começa por melhorar um campo de produção. Depois avança um ou dois dias para terminar a obra.';
+      detail = 'Começa por melhorar um campo de produção. Depois termina um ou dois turnos para concluir a obra.';
       label = 'Ver campos'; action = 'guide-production';
     } else if (!trained) {
       title = '2. Prepara as primeiras tropas';
@@ -626,10 +756,10 @@
       label = 'Encontrar terreno'; action = 'guide-expand';
     } else {
       title = 'O teu reino está em movimento';
-      detail = 'Constrói, prepara o exército, negoceia e observa o ranking. Avança o tempo para veres os rivais agir.';
+      detail = 'Constrói, prepara o exército, negoceia e observa o ranking. Termina o turno quando quiseres que os rivais ajam.';
       label = 'Ver ranking'; action = 'open-ranking';
     }
-    $('guidance').innerHTML = '<div class="guidance-copy"><p class="eyebrow">O QUE FAZER A SEGUIR</p><strong>' + title + '</strong><p>' + detail + '</p></div><div class="guidance-actions">' + actionButton(label + ' ↗', action, '', 'primary') + '</div>';
+    $('guidance').innerHTML = '<div class="guidance-copy"><p class="eyebrow">O QUE FAZER A SEGUIR</p><strong>' + title + '</strong><p>' + detail + '</p></div><div class="guidance-actions">' + actionButton(label + ' ↗', action, '', 'subtle small') + '</div>';
   }
   function focusWorkspace() {
     const node = typeof document.querySelector === 'function' ? document.querySelector('.workspace') : null;
@@ -659,18 +789,22 @@
     if (node && typeof node.scrollIntoView === 'function') node.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   function render() {
-    resBar(); renderGuidance(); renderMap(); renderSelected(); renderVillageList(); renderVillageScene(); renderWorkspace(); renderDispatches(); renderEvent();
+    resBar(); renderMilitaryStrip(); renderGuidance(); renderMap(); renderSelected(); renderVillageList(); renderVillageScene(); renderWorkspace(); renderDispatches(); renderEvent();
     $('village-scene').classList.toggle('hidden-pane', game.tab !== 'village');
     $('map-panel').classList.toggle('hidden-pane', game.tab !== 'map');
     $('workspace').classList.toggle('hidden-pane', game.tab === 'map');
     $('game-layout').classList.toggle('map-mode', game.tab === 'map');
     $('game-layout').classList.toggle('village-mode', game.tab === 'village');
-    $('day-label').textContent = 'Dia ' + game.day;
+    $('day-label').textContent = 'Turno ' + game.day;
     $('phase-label').textContent = game.day < 20 ? 'A era dos pequenos reinos' : game.day < 60 ? 'A era das conquistas' : 'A disputa pela coroa';
-    document.querySelectorAll('[data-speed]').forEach(function (b) { b.classList.toggle('active', Number(b.dataset.speed) === game.speed); });
-    $('time-pause').classList.toggle('active', game.speed === 0);
+    $('next-day').disabled = !!game.ended || !!game.event;
+    $('mobile-next-turn').disabled = !!game.ended || !!game.event;
+    $('mobile-turn-label').textContent = 'Turno ' + game.day;
+    $('mobile-next-turn').title = game.event ? 'Resolve o evento antes de passar turno' : game.ended ? 'A campanha terminou' : 'Terminar turno ' + game.day;
+    $('mobile-next-turn').setAttribute('aria-label', game.event ? 'Resolve o evento antes de passar turno' : game.ended ? 'A campanha terminou' : 'Terminar turno ' + game.day + ' e avançar para o seguinte');
     $('empire-mini').innerHTML = '<span class="tiny-label">O TEU IMPÉRIO</span><div class="mini-stat"><span>Aldeias</span><strong>' + ownTiles(0).length + '</strong></div><div class="mini-stat"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="mini-stat"><span>Posição</span><strong>#' + (ranking().findIndex(function (f) { return f.id === 0; }) + 1) + '</strong></div><div class="mini-stat"><span>Missões</span><strong>' + game.missions.filter(function (m) { return m.owner === 0; }).length + '</strong></div>';
   }
+
   function diplomacyAction(action, id) {
     const f = game.factions[id]; const r = relation(0, id);
     if (!f || !r || game.ended) return;
@@ -704,17 +838,32 @@
     const action = btn.dataset.action;
     const tileId = btn.dataset.tile !== undefined ? Number(btn.dataset.tile) : game.selected;
     const factionId = Number(btn.dataset.faction);
+    if (action === 'end-turn') {
+      if (game.ended || game.event) { notice(game.event ? 'Resolve o evento antes de avançar.' : 'Esta campanha terminou.', true); return; }
+      advanceDay();
+      notice('⏭️ Turno ' + game.day + ' iniciado');
+      return;
+    }
     if (action === 'restart') { createGame(); refresh(); return; }
-    if (game.ended && action !== 'open-ranking') return;
+    if (action === 'review-end' && game.ended) {
+      game.endSummaryDismissed = true;
+      navigateTo('reports'); markReportsRead(); refresh(); focusWorkspace(); return;
+    }
+    if (game.ended && !['open-ranking','open-reports','view-report'].includes(action)) return;
     let scrollTo = '';
+    let focusReportId = 0;
     if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'scene'; }
-    else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; game.buildingFocus = game.villageMode === 'production' ? 'wood' : 'barracks'; }
+    else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; game.buildingFocus = game.villageMode === 'production' ? 'wood' : 'barracks'; scrollTo = 'scene'; }
     else if (action === 'focus-building') { if (BUILDINGS[btn.dataset.key]) { game.buildingFocus = btn.dataset.key; scrollTo = 'workspace'; } }
     else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'wood'; scrollTo = 'scene'; }
     else if (action === 'open-infrastructure') { navigateTo('village', 'infrastructure', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'barracks'; scrollTo = 'scene'; }
     else if (action === 'open-army') { navigateTo('army'); scrollTo = 'workspace'; }
     else if (action === 'open-diplomacy') { navigateTo('diplomacy'); scrollTo = 'workspace'; }
     else if (action === 'open-ranking') { navigateTo('ranking'); scrollTo = 'workspace'; }
+    else if (action === 'open-reports' || action === 'view-report') {
+      navigateTo('reports'); markReportsRead(); scrollTo = 'workspace';
+      if (action === 'view-report') focusReportId = Number(btn.dataset.reportId) || 0;
+    }
     else if (action === 'guide-expand') {
       const t = nearestFree(0);
       if (t) { game.selected = t.id; game.tab = 'map'; scrollTo = 'selection'; }
@@ -744,11 +893,19 @@
     if (scrollTo === 'workspace') focusWorkspace();
     if (scrollTo === 'selection') focusSelection();
     if (scrollTo === 'scene') focusActiveView();
+    if (focusReportId) {
+      const entry = $('battle-report-' + focusReportId);
+      if (entry && typeof entry.scrollIntoView === 'function') entry.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
   document.addEventListener('click', function (ev) {
     const btn = ev.target.closest('button'); if (!btn || btn.disabled) return;
     if (btn.id === 'mobile-more-toggle') { updateMobileMenu(!mobileMenuOpen); return; }
-    if (btn.dataset.tile !== undefined && !btn.dataset.action) { game.selected = Number(btn.dataset.tile); refresh(); focusSelection(); return; }
+    if (btn.dataset.tile !== undefined && !btn.dataset.action) {
+      game.selected = Number(btn.dataset.tile);
+      game.tab = 'map';
+      refresh(); focusSelection(); return;
+    }
     if (btn.dataset.tab) {
       updateMobileMenu(false);
       game.tab = btn.dataset.tab;
@@ -757,30 +914,33 @@
         game.buildingFocus = game.villageMode === 'production' ? 'wood' : 'barracks';
         if (game.tiles[game.selected].owner !== 0 && ownTiles(0).length) game.selected = ownTiles(0)[0].id;
       }
+      if (game.tab === 'reports') markReportsRead();
       refresh();
       if (typeof window.innerWidth === 'number' && window.innerWidth <= 800) focusActiveView();
       else if (game.tab !== 'map' && game.tab !== 'village') focusWorkspace();
       return;
     }
     if (btn.dataset.action) { handleAction(btn); return; }
-    if (btn.dataset.speed) { game.speed = Number(btn.dataset.speed); accumulated = 0; refresh(); return; }
-    if (btn.id === 'time-pause') { game.speed = 0; accumulated = 0; refresh(); }
-    if (btn.id === 'next-day') { advanceDay(); }
-    if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); }
-    if (btn.id === 'back-to-map') { game.tab = 'map'; refresh(); }
+    if (btn.id === 'next-day' || btn.id === 'mobile-next-turn') {
+      if (game.ended || game.event) return;
+      advanceDay();
+      notice('⏭️ Turno ' + game.day + ' iniciado');
+      return;
+    }
+    if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); return; }
+    if (btn.id === 'back-to-map') { game.tab = 'map'; refresh(); focusActiveView(); return; }
     if (btn.id === 'new-game') {
-      if (window.confirm('Iniciar uma nova campanha? O progresso guardado será substituído.')) { createGame(); refresh(); }
+      if (window.confirm('Iniciar uma nova campanha? O progresso guardado será substituído.')) {
+        createGame(); refresh(); focusActiveView();
+      }
     }
   });
   document.addEventListener('change', function (ev) {
     if (ev.target.id !== 'mobile-village-select') return;
     const id = Number(ev.target.value);
     if (!game.tiles[id] || game.tiles[id].owner !== 0) return;
-    game.selected = id;
-    game.tab = 'village';
-    updateMobileMenu(false);
-    refresh();
-    focusActiveView();
+    game.selected = id; game.tab = 'village';
+    updateMobileMenu(false); refresh(); focusActiveView();
   });
   document.addEventListener('input', function (ev) {
     if (ev.target.id !== 'force-slider') return;
@@ -788,19 +948,8 @@
     $('force-number').textContent = game.force + '%';
     save();
   });
-  document.addEventListener('keydown', function (ev) {
-    if (ev.code === 'Escape' && mobileMenuOpen) { updateMobileMenu(false); return; }
-    if (ev.code === 'Space' && !['INPUT','TEXTAREA','BUTTON'].includes(document.activeElement.tagName) && !game.event) {
-      ev.preventDefault(); game.speed = game.speed === 0 ? 1 : 0; accumulated = 0; refresh();
-    }
-  });
+  // Os turnos só avançam por decisão explícita do jogador.
   load(); render();
-  setInterval(function () {
-    if (!game || !game.speed || game.event || game.ended) return;
-    accumulated += 250;
-    const duration = SPEED_MS[game.speed] || SPEED_MS[1];
-    if (accumulated >= duration) { accumulated = 0; advanceDay(); }
-  }, 250);
   // Minimal debug interface for repeatable tests; never writes to network.
   window.KingdomsOfAsh = {
     getState: function () { return clone(game); },

@@ -1,3 +1,27 @@
+# Kingdoms of Ash v0.4 — Aldeia e turnos
+
+Esta versão combina a interface de gestão de aldeias com o motor single-player por turnos da v0.3.
+
+## Navegação
+- **🌾 Recursos:** cena com quatro campos; clica num campo para ver a melhoria e os custos.
+- **🏘️ Aldeia:** cena do centro da aldeia, com quartel, paliçada e mercado.
+- **🗺️ Mapa:** seleciona território para colonizar, saquear, conquistar ou abrir a tua aldeia.
+- **⚔️ Tropas:** recrutamento e exércitos em marcha.
+- **🤝 Diplomacia**, **🏆 Ranking**, **📜 Relatórios**, **📖 Crónicas**: vistas independentes.
+- Troca de aldeia na lista lateral ou no seletor mobile.
+
+## Jogabilidade
+- O mundo avança apenas com **⏭️ Terminar turno**, nunca com o relógio.
+- Emojis provisórios para terrenos, campos, edifícios e unidades.
+- Alertas 🚨 para ataques a chegar e resumo do exército no topo.
+- Relatórios completos por batalha com enviados, sobreviventes, perdas e recursos saqueados.
+- A v0.4 usa a sua própria gravação local `kingdoms-of-ash-v04`. Importa da v0.3 publicada ou de saves anteriores, sem sobrescrever essas versões.
+
+## Testes
+`node --test`. A lógica e navegação estão verificadas em 19 cenários automatizados; validar layout e interações num browser real antes de substituir a página principal.
+
+---
+
 # Kingdoms of Ash
 
 **Kingdoms of Ash** é um protótipo jogável de estratégia **single-player** inspirado na sensação de um servidor de Travian: desenvolver economia, recrutar exércitos, disputar o ranking, negociar e observar impérios rivais a agir por iniciativa própria.
