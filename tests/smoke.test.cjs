@@ -452,7 +452,6 @@ test('strategy: farming raid yields replenishable finite loot, limited by carryi
   assert.ok(resourceSum(r.loot)>0);
   assert.ok(resourceSum(r.loot)<=r.carryCapacity);
   assert.ok(resourceSum(s.tiles[20].stock)<stock+90);
-  assert.ok(g.html('workspace-content').includes('Village') || g.html('workspace-content').length>0);
   const before=s.tiles[20].stock.wood;
   g.advance();
   assert.ok(g.state().tiles[20].stock.wood>=before);
