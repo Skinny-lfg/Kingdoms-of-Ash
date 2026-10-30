@@ -113,3 +113,13 @@
  .battle-units span{font-size:9px}
  .battle-columns small{flex-basis:87px}
 }
+
+/* Pequeno botão de turno na navegação móvel fixa; cabe nos 320px sem criar mais uma linha. */
+@media(max-width:800px){
+  .masthead .time-controls{display:none}
+  .mobile-bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))}
+  .mobile-bottom-nav #mobile-next-turn{background:#e3ecd4;border:1px solid #a4bb89;color:#31552d}
+  .mobile-bottom-nav #mobile-next-turn span{font-size:18px}
+  .mobile-bottom-nav #mobile-next-turn b{font-size:10px}
+  .mobile-bottom-nav #mobile-next-turn:disabled{opacity:.5;cursor:not-allowed;background:#e5e1d6;color:#746f67;border-color:#d0c8b5}
+}
