@@ -148,7 +148,7 @@ function score(id) {
     const f=game.factions[id];
     return Math.round(ownTiles(id).length*280+population(id)*1.4+armyPower(totalArmy(id))*1.2+
       RES.reduce(function(n,r){return n+f.resources[r.key];},0)*.06+
-      ownTiles(id).filter(function(t){return t.terrain==='iron'||t.site==='caravan';}).length*30);
+      ownTiles(id).filter(function(t){return t.terrain==='iron'||t.site==='caravan';}).length*30+ownTiles(id).filter(t=>CHOKEPOINTS.includes(t.id)).length*110);
   }
 
   function ranking() { return game.factions.slice().sort(function (a, b) { return score(b.id) - score(a.id); }); }
@@ -165,6 +165,9 @@ function upkeep(id) {
       RES.forEach(function (r) { out[r.key] += 8 + t.levels[r.key] * 7 + (t.terrain === r.key ? 8 : 0) + t.levels.market * 3; });
     });
     out.grain -= upkeep(id);
+    const treaties=game.factions.filter(f=>f.id!==id&&relation(id,f.id).stance==='pact').length;
+    const allies=game.factions.filter(f=>f.id!==id&&relation(id,f.id).stance==='alliance').length;
+    RES.forEach(function(r){out[r.key]+=Math.floor(out[r.key]*(treaties*.025+allies*.06));});
     return out;
   }
   function settleCost(id) {
@@ -406,7 +409,7 @@ function resolveMission(m) {
  }
  const defender=t.owner,attackersBefore=clone(m.troops),defendersBefore=defendTroops(defender,t.id);
  const militiaBefore=defender<0?t.militia:0;
- const defenseBonus=terrainDefense(t)*(t.fortifyUntil>=game.day?1.28:1);
+ const defenseBonus=terrainDefense(t)*(t.fortifyUntil>=game.day?1.28:1)*(defender>=0?1+Math.min(.18,alliedCover(defender,t.id)*.06):1);
  const defense=(militiaBefore*2.3+armyPower(defendersBefore,true)+t.levels.wall*17+6)*defenseBonus;
  const supply=logistics(m.owner,t.id);
  const power=armyPower(m.troops)*(m.mode==='raid'?.92:m.mode==='siege'?.85:1.08)*
@@ -452,9 +455,72 @@ function resolveMission(m) {
         return bv - av;
       })[0];
   }
+
+  const CHOKEPOINTS=[18,22,30];
+  function strategicValue(t,id) {
+    return (t.terrain==='grain'?35:0)+(t.terrain==='iron'?30:0)+(CHOKEPOINTS.includes(t.id)?75:0)+
+      (t.site==='caravan'?40:0)-nearestDistance(id,t.id)*12;
+  }
+  function alliedCover(id,tileId) {
+    return game.factions.filter(f=>f.id!==id&&relation(id,f.id).stance==='alliance'&&
+      ownTiles(f.id).some(t=>distance(t.id,tileId)<=2)).length;
+  }
+  function planAI(id) {
+    const f=game.factions[id],villages=ownTiles(id);
+    if(!villages.length)return;
+    if(villages.some(v=>game.missions.some(m=>m.owner!==id&&!m.returnTrip&&m.tile===v.id))){
+      f.plan={type:'defensive',target:villages[0].id,ready:game.day};return;
+    }
+    const foes=game.tiles.filter(t=>t.owner>=0&&t.owner!==id&&nearestDistance(id,t.id)<=5&&
+      relation(id,t.owner).stance==='war').sort((a,b)=>strategicValue(b,id)-strategicValue(a,id));
+    if(foes.length&&(f.style==='aggressive'||f.style==='opportunist'||f.plan?.type==='retaliate')){
+      f.plan={type:'offensive',target:foes[0].id,ready:game.day+1};return;
+    }
+    const plot=nearestFree(id);
+    f.plan={type:plot?'expansion':'economy',target:plot?plot.id:villages[0].id,ready:game.day+1};
+  }
+  function executeAIPlan(id) {
+    const f=game.factions[id],p=f.plan;
+    if(!p)return false;
+    const villages=ownTiles(id);if(!villages.length)return false;
+    if(p.type==='defensive'){
+      const threatened=villages.find(v=>game.missions.some(m=>m.owner!==id&&!m.returnTrip&&m.tile===v.id));
+      if(!threatened)return false;
+      const k=Object.keys(UNITS).find(k=>f.troops[k]>0);
+      if(k)station(id,threatened.id,k,Math.min(9,f.troops[k]));
+      if(canAfford(id,{wood:45,clay:40,iron:25,grain:20}))fortify(id,threatened.id);
+      return true;
+    }
+    if(p.type==='offensive'&&game.day>=p.ready){
+      const t=game.tiles[p.target];
+      if(t.owner<0||t.owner===id||relation(id,t.owner).stance!=='war')return false;
+      if(game.missions.some(m=>m.owner===id&&!m.returnTrip))return false;
+      const our=armyPower(f.troops),their=armyPower(defendTroops(t.owner,t.id),true)+t.levels.wall*17;
+      if(our>their*1.2&&armyCount(f.troops)>=8){
+        const mode=f.troops.siege>=3&&our>their*1.7?'siege':'attack';
+        if(launch(id,t.id,mode,80,true)){f.plan=null;return true;}
+      }
+      return false;
+    }
+    if(p.type==='expansion'&&game.day>=p.ready){
+      const t=game.tiles[p.target];
+      if(t.owner===-1&&canAfford(id,settleCost(id))&&
+        !game.missions.some(m=>m.owner===id&&!m.returnTrip&&m.mode==='settle')){
+        if(launch(id,t.id,'settle',0,true)){f.plan=null;return true;}
+      }
+    }
+    return false;
+  }
   function aiAct(id) {
     const f = game.factions[id]; const villages = ownTiles(id);
     if (!villages.length) return;
+    if (!f.plan || game.day % 4 === id % 4) planAI(id);
+    if (executeAIPlan(id)) return;
+    const capitalGuard=villages[0];
+    if(capitalGuard&&armyCount(capitalGuard.garrison)<12&&armyCount(f.troops)>12){
+      const k=Object.keys(UNITS).find(k=>f.troops[k]>5);
+      if(k)station(id,capitalGuard.id,k,Math.min(5,f.troops[k]-3));
+    }
     const pending = game.missions.some(function (m) { return m.owner === id && !m.returnTrip; });
     const plot = !pending ? nearestFree(id) : null;
     if (plot && canAfford(id, settleCost(id)) && (game.day > 2 || f.style === 'economic')) {
@@ -483,9 +549,9 @@ function resolveMission(m) {
       const enemies = game.tiles.filter(function (t) { return t.owner >= 0 && t.owner !== id && relation(id, t.owner).stance === 'war' && nearestDistance(id, t.id) <= 4; });
       if (enemies.length) {
         enemies.sort(function (a, b) { return nearestDistance(id, a.id) - nearestDistance(id, b.id); });
-        const t = enemies[0]; const defense = armyPower(defendTroops(t.owner), true) + t.levels.wall * 16;
+        const t = enemies.sort(function(a,b){return strategicValue(b,id)-strategicValue(a,id);})[0]; const defense = armyPower(defendTroops(t.owner,t.id), true) + t.levels.wall * 16;
         if (armyPower(f.troops, false) * .7 > defense * .9) {
-          const mode = f.troops.siege >= 3 ? 'conquer' : 'raid';
+          const mode = f.troops.siege >= 3 ? 'siege' : 'attack';
           if (launch(id, t.id, mode, 80, true)) return;
         }
       }
