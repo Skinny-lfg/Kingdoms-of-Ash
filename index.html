@@ -21,16 +21,14 @@
         <strong id="day-label">Dia 1</strong>
         <span id="phase-label" class="muted">A era dos pequenos reinos</span>
       </div>
-      <div class="time-controls" aria-label="Controlo do tempo">
-        <button id="time-pause" class="speed active" type="button" aria-label="Pausar">Ⅱ</button>
-        <button data-speed="1" class="speed" type="button">1×</button>
-        <button data-speed="5" class="speed" type="button">5×</button>
-        <button data-speed="20" class="speed" type="button">20×</button>
-        <button id="next-day" class="button subtle" type="button" title="Avançar um dia">+1 dia ↗</button>
+      <div class="time-controls" aria-label="Controlo de turnos">
+        <span class="turn-caption">🎲 Estratégia por turnos · sem temporizador</span>
+        <button id="next-day" class="button primary next-turn" type="button" title="Resolver missões, economia e ações dos rivais">⏭️ Terminar turno</button>
       </div>
     </header>
 
     <section class="resource-strip" id="resources" aria-label="Recursos do império"></section>
+    <section class="military-strip panel" id="military-strip" aria-label="Resumo das tropas e alertas"></section>
     <section class="guidance panel" id="guidance" aria-label="Próximo passo recomendado"></section>
 
     <div class="game-layout">
@@ -41,7 +39,8 @@
           <button class="nav-button" data-tab="army" type="button"><span>⚔</span> Exército</button>
           <button class="nav-button" data-tab="diplomacy" type="button"><span>♧</span> Diplomacia</button>
           <button class="nav-button" data-tab="ranking" type="button"><span>♛</span> Ranking</button>
-          <button class="nav-button" data-tab="chronicle" type="button"><span>≡</span> Crónicas</button>
+          <button class="nav-button" data-tab="reports" type="button"><span>📜</span> Relatórios <span id="report-badge" class="report-badge hidden" aria-label="Relatórios por ler">0</span></button>
+          <button class="nav-button" data-tab="chronicle" type="button"><span>📖</span> Crónicas</button>
         </nav>
         <div class="side-divider"></div>
         <div id="empire-mini" class="empire-mini"></div>
@@ -84,7 +83,7 @@
         </section>
         <section class="panel dispatches">
           <div class="section-header small">
-            <div><p class="eyebrow">O MUNDO NÃO ESPERA</p><h2>Últimas notícias</h2></div>
+            <div><p class="eyebrow">ACONTECIMENTOS DO TURNO</p><h2>Últimas notícias</h2></div>
             <button id="view-chronicle" class="text-button" type="button">Ver tudo ↗</button>
           </div>
           <div id="dispatch-list" aria-live="polite"></div>
@@ -92,7 +91,7 @@
       </aside>
     </div>
 
-    <footer class="footline"><span>KINGDOMS OF ASH · PROTÓTIPO V0.1</span><span>Um mundo que também quer vencer.</span></footer>
+    <footer class="footline"><span>KINGDOMS OF ASH · PROTÓTIPO V0.3 · POR TURNOS</span><span>Um mundo que também quer vencer.</span></footer>
   </div>
   <div id="event-layer" class="event-layer hidden" role="presentation"></div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
