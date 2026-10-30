@@ -189,3 +189,7 @@ h2,h3,h4{color:#424733}
  .map-viewport{padding:14px 7px}
  .world-map{gap:3px}
 }
+
+/* Campo ou edifício escolhido no diagrama */
+.entry.selected-building{background:#edf0dc;border:2px solid #7f9a5c;box-shadow:0 2px 9px #546f3c20}
+.entry.selected-building strong{color:#3d5e37}
