@@ -1,0 +1,14 @@
+{
+  "name": "kingdoms-of-ash",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Static single-player browser strategy game",
+  "scripts": {
+    "build": "node scripts/prepare-hosting.mjs",
+    "test": "node --test",
+    "check": "npm run test && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
