@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./travian-layout.css">
   <link rel="stylesheet" href="./mobile-layout.css">
-  <link rel="stylesheet" href="./turns-reports.css">
-  <script src="./game.js" defer></script>
+  <link rel="stylesheet" href="./turns-reports.css?v=0.4.2">
+  <script src="./game.js?v=0.4.2" defer></script>
 </head>
 <body>
   <div class="shell">
@@ -106,7 +106,7 @@
     <button type="button" class="nav-button" data-tab="map"><span aria-hidden="true">🗺️</span><b>Mapa</b></button>
     <button type="button" class="nav-button" data-tab="army"><span aria-hidden="true">⚔️</span><b>Tropas</b></button>
     <button type="button" id="mobile-more-toggle" aria-controls="nav" aria-expanded="false"><span aria-hidden="true">☰</span><b>Mais</b></button>
-    <button type="button" id="mobile-next-turn" aria-label="Terminar turno e avançar um dia" title="Terminar turno"><span aria-hidden="true">⏭️</span><b>Turno</b></button>
+    <button type="button" id="mobile-next-turn" data-action="end-turn" aria-label="Terminar turno e avançar um dia" title="Terminar turno"><span aria-hidden="true">⏭️</span><b id="mobile-turn-label">Turno 1</b></button>
   </nav>
   <div id="event-layer" class="event-layer hidden" role="presentation"></div>
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
