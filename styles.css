@@ -73,3 +73,11 @@ button{font:inherit;color:inherit;cursor:pointer}button:focus-visible{outline:2p
 .map-overlay{font-size:8px;letter-spacing:.15em}
 .action-stack .force-label{margin-top:8px}
 }
+
+/* Deixa acessível a nova campanha mesmo com a navegação horizontal */
+.left-panel{display:flex;align-items:center;gap:12px}
+.left-panel .nav{flex:1;min-width:0}
+.left-panel .left-footer{display:flex;flex:0 0 auto;align-items:center;padding:0 8px;margin:0}
+.left-panel .left-footer p{display:none}
+.left-panel .left-footer .text-button{white-space:nowrap}
+@media(max-width:900px){.left-panel{flex-wrap:wrap}.left-panel .nav{flex:1 1 100%;order:1}.left-panel .left-footer{order:2;margin-left:auto;padding:3px 7px}}
