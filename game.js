@@ -542,6 +542,10 @@
     $('village-list').innerHTML = villages.length ? villages.map(function (t) {
       return '<button type="button" data-action="select" data-tile="' + t.id + '" class="' + (game.selected === t.id ? 'active' : '') + '" aria-label="Abrir aldeia ' + t.name + '"><span>⌂ ' + t.name + '</span><small>' + (t.id === FACTIONS[0].capital ? 'Capital' : 'Aldeia') + '</small></button>';
     }).join('') : '<p class="muted-note">Não tens aldeias.</p>';
+    const selectedVillage = game.tiles[game.selected] && game.tiles[game.selected].owner === 0 ? game.selected : villages.length ? villages[0].id : -1;
+    const select = $('mobile-village-select');
+    select.innerHTML = villages.map(function (t) { return '<option value="' + t.id + '"' + (t.id === selectedVillage ? ' selected' : '') + '>' + t.name + '</option>'; }).join('');
+    select.value = String(selectedVillage);
   }
   function renderVillageScene() {
     const villages = ownTiles(0);
@@ -641,11 +645,26 @@
     if (mode) game.villageMode = mode;
     if (typeof target === 'number') game.selected = target;
   }
+  let mobileMenuOpen = false;
+  function updateMobileMenu(open) {
+    mobileMenuOpen = Boolean(open);
+    $('mobile-extra-nav').classList.toggle('mobile-open', mobileMenuOpen);
+    const more = $('mobile-more-toggle');
+    if (typeof more.setAttribute === 'function') more.setAttribute('aria-expanded', String(mobileMenuOpen));
+  }
+  function focusActiveView() {
+    if (typeof window.innerWidth !== 'number' || window.innerWidth > 800) return;
+    const selector = game.tab === 'village' ? '#village-scene' : game.tab === 'map' ? '#map-panel' : '#workspace';
+    const node = typeof document.querySelector === 'function' ? document.querySelector(selector) : null;
+    if (node && typeof node.scrollIntoView === 'function') node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
   function render() {
     resBar(); renderGuidance(); renderMap(); renderSelected(); renderVillageList(); renderVillageScene(); renderWorkspace(); renderDispatches(); renderEvent();
     $('village-scene').classList.toggle('hidden-pane', game.tab !== 'village');
     $('map-panel').classList.toggle('hidden-pane', game.tab !== 'map');
     $('workspace').classList.toggle('hidden-pane', game.tab === 'map');
+    $('game-layout').classList.toggle('map-mode', game.tab === 'map');
+    $('game-layout').classList.toggle('village-mode', game.tab === 'village');
     $('day-label').textContent = 'Dia ' + game.day;
     $('phase-label').textContent = game.day < 20 ? 'A era dos pequenos reinos' : game.day < 60 ? 'A era das conquistas' : 'A disputa pela coroa';
     document.querySelectorAll('[data-speed]').forEach(function (b) { b.classList.toggle('active', Number(b.dataset.speed) === game.speed); });
@@ -688,11 +707,11 @@
     if (action === 'restart') { createGame(); refresh(); return; }
     if (game.ended && action !== 'open-ranking') return;
     let scrollTo = '';
-    if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'workspace'; }
+    if (action === 'select' || action === 'manage') { navigateTo('village', null, action === 'select' ? tileId : game.selected); scrollTo = 'scene'; }
     else if (action === 'village-mode') { game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production'; game.buildingFocus = game.villageMode === 'production' ? 'wood' : 'barracks'; }
     else if (action === 'focus-building') { if (BUILDINGS[btn.dataset.key]) { game.buildingFocus = btn.dataset.key; scrollTo = 'workspace'; } }
-    else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'wood'; scrollTo = 'workspace'; }
-    else if (action === 'open-infrastructure') { navigateTo('village', 'infrastructure', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'barracks'; scrollTo = 'workspace'; }
+    else if (action === 'guide-production' || action === 'open-production') { navigateTo('village', 'production', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'wood'; scrollTo = 'scene'; }
+    else if (action === 'open-infrastructure') { navigateTo('village', 'infrastructure', ownTiles(0)[0] && game.tiles[game.selected].owner !== 0 ? ownTiles(0)[0].id : undefined); game.buildingFocus = 'barracks'; scrollTo = 'scene'; }
     else if (action === 'open-army') { navigateTo('army'); scrollTo = 'workspace'; }
     else if (action === 'open-diplomacy') { navigateTo('diplomacy'); scrollTo = 'workspace'; }
     else if (action === 'open-ranking') { navigateTo('ranking'); scrollTo = 'workspace'; }
@@ -724,11 +743,14 @@
     refresh();
     if (scrollTo === 'workspace') focusWorkspace();
     if (scrollTo === 'selection') focusSelection();
+    if (scrollTo === 'scene') focusActiveView();
   }
   document.addEventListener('click', function (ev) {
     const btn = ev.target.closest('button'); if (!btn || btn.disabled) return;
+    if (btn.id === 'mobile-more-toggle') { updateMobileMenu(!mobileMenuOpen); return; }
     if (btn.dataset.tile !== undefined && !btn.dataset.action) { game.selected = Number(btn.dataset.tile); refresh(); focusSelection(); return; }
     if (btn.dataset.tab) {
+      updateMobileMenu(false);
       game.tab = btn.dataset.tab;
       if (game.tab === 'village') {
         game.villageMode = btn.dataset.mode === 'infrastructure' ? 'infrastructure' : 'production';
@@ -736,7 +758,8 @@
         if (game.tiles[game.selected].owner !== 0 && ownTiles(0).length) game.selected = ownTiles(0)[0].id;
       }
       refresh();
-      if (game.tab !== 'map' && game.tab !== 'village') focusWorkspace();
+      if (typeof window.innerWidth === 'number' && window.innerWidth <= 800) focusActiveView();
+      else if (game.tab !== 'map' && game.tab !== 'village') focusWorkspace();
       return;
     }
     if (btn.dataset.action) { handleAction(btn); return; }
@@ -749,6 +772,16 @@
       if (window.confirm('Iniciar uma nova campanha? O progresso guardado será substituído.')) { createGame(); refresh(); }
     }
   });
+  document.addEventListener('change', function (ev) {
+    if (ev.target.id !== 'mobile-village-select') return;
+    const id = Number(ev.target.value);
+    if (!game.tiles[id] || game.tiles[id].owner !== 0) return;
+    game.selected = id;
+    game.tab = 'village';
+    updateMobileMenu(false);
+    refresh();
+    focusActiveView();
+  });
   document.addEventListener('input', function (ev) {
     if (ev.target.id !== 'force-slider') return;
     game.force = Number(ev.target.value);
@@ -756,6 +789,7 @@
     save();
   });
   document.addEventListener('keydown', function (ev) {
+    if (ev.code === 'Escape' && mobileMenuOpen) { updateMobileMenu(false); return; }
     if (ev.code === 'Space' && !['INPUT','TEXTAREA','BUTTON'].includes(document.activeElement.tagName) && !game.event) {
       ev.preventDefault(); game.speed = game.speed === 0 ? 1 : 0; accumulated = 0; refresh();
     }
