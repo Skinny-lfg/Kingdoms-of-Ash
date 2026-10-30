@@ -353,3 +353,21 @@ test('importa save da v0.3 do GitHub Pages sem o alterar', () => {
   assert.equal(newer.state().day, 3);
   assert.equal(store.get('kingdoms-of-ash-v03-pages'), snapshot);
 });
+
+test('mobile: botão fixo de turno avança exatamente um dia e respeita eventos', () => {
+  const g = startGame();
+  assert.equal(g.state().day, 1);
+  g.click({}, 'mobile-next-turn');
+  assert.equal(g.state().day, 2);
+  const state = g.state();
+  state.event = { faction: 1, type: 'ultimatum' };
+  g.store.set('kingdoms-of-ash-v04', JSON.stringify(state));
+  const blocked = startGame(g.store);
+  assert.equal(blocked.state().day, 2);
+  assert.equal(blocked.html('military-strip').includes('Exército'), true);
+  blocked.click({}, 'mobile-next-turn');
+  assert.equal(blocked.state().day, 2);
+  blocked.click({ action: 'event-refuse' });
+  blocked.click({}, 'mobile-next-turn');
+  assert.equal(blocked.state().day, 3);
+});
