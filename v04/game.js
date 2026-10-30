@@ -798,6 +798,7 @@
     $('day-label').textContent = 'Turno ' + game.day;
     $('phase-label').textContent = game.day < 20 ? 'A era dos pequenos reinos' : game.day < 60 ? 'A era das conquistas' : 'A disputa pela coroa';
     $('next-day').disabled = !!game.ended || !!game.event;
+    $('mobile-next-turn').disabled = !!game.ended || !!game.event;
     $('empire-mini').innerHTML = '<span class="tiny-label">O TEU IMPÉRIO</span><div class="mini-stat"><span>Aldeias</span><strong>' + ownTiles(0).length + '</strong></div><div class="mini-stat"><span>População</span><strong>' + format(population(0)) + '</strong></div><div class="mini-stat"><span>Posição</span><strong>#' + (ranking().findIndex(function (f) { return f.id === 0; }) + 1) + '</strong></div><div class="mini-stat"><span>Missões</span><strong>' + game.missions.filter(function (m) { return m.owner === 0; }).length + '</strong></div>';
   }
 
@@ -911,7 +912,7 @@
       return;
     }
     if (btn.dataset.action) { handleAction(btn); return; }
-    if (btn.id === 'next-day') { advanceDay(); return; }
+    if (btn.id === 'next-day' || btn.id === 'mobile-next-turn') { advanceDay(); return; }
     if (btn.id === 'view-chronicle') { game.tab = 'chronicle'; refresh(); focusWorkspace(); return; }
     if (btn.id === 'back-to-map') { game.tab = 'map'; refresh(); focusActiveView(); return; }
     if (btn.id === 'new-game') {
